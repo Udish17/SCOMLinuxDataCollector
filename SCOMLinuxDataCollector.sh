@@ -55,8 +55,8 @@ CheckDir() {
     if [ -d "${path}/SCOMLinuxDataCollectorData" ]; then
         echo -e "\t Path ${pwd} is present in the current working directory. Removing and recreating the directory.....\n"
         echo -e "\t Path ${pwd} is present in the current working directory. Removing and recreating the directory.....\n" >> ${path}/scxdatacollector.log
-        #rm -rf ${path}/SCOMLinuxDataCollectorData
-        #CreateDir "${path}/SCOMLinuxDataCollectorData"
+        rm -rf ${path}/SCOMLinuxDataCollectorData
+        CreateDir "${path}/SCOMLinuxDataCollectorData"
     else
         echo -e "\t Path ${pwd} is not present in the current working directory. Creating the directory.....\n"
         echo -e "\t Path ${pwd} is not present in the current working directory. Creating the directory.....\n" >> ${path}/scxdatacollector.log
