@@ -5,13 +5,13 @@
 
 help()
 {
-    echo -e "\n about:   This shell script is used to collect basic information about the Ooperating System and SCOM Linux(SCX) Agent"
+    echo -e "\n about:   This shell script is used to collect basic information about the Operating System and SCOM Linux(SCX) Agent"
     echo -e "\t This is a read only script and does not make any changes to the system"
     echo -e "\n usage: $1 [OPTIONS]"
     echo -e "\n Options:"
-    echo "  -p      :logfilepath                     Specify the location where the data would be collected. If not specified the script will collect the data in the current working directory."
-    echo "  -m      :scxmaintenanceaccount           Specify the SCX Maintenance Account. This will be used to check the sudo priviledge for the account."
-    echo "  -n      :scxmonitoringaccount            Specify the SCX Monitoring Account. This will be used to check the sudo priviledge for the account."    
+    echo "  -o      :outputpath                      Specify the location where the data would be collected. If not specified the script will collect the data in the current working directory."
+    echo "  -m      :scxmaintenanceaccount           Specify the SCX Maintenance Account. This will be used to check the sudo privilege for the account."
+    echo "  -n      :scxmonitoringaccount            Specify the SCX Monitoring Account. This will be used to check the sudo privilege for the account."    
 }
 
 CheckParamteres(){
@@ -491,12 +491,12 @@ Main(){
 # Process the input options. Add options as needed.        #
 ############################################################
 # Get the options
-while getopts "hp:m:n:" option; do
+while getopts "ho:m:n:" option; do
    case $option in
       h) # display Help      
          help
          exit;;
-      p) # Enter log collection path
+      o) # Enter log collection path
          path=$OPTARG
          ;;
       m) # Enter log collection path
