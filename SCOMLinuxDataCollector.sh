@@ -1,7 +1,12 @@
-#! /bin/sh
+#! /bin/bash
+#About:
+#   This script is written for data collection from Linux machines which can help in troubleshooting SCOM UNIX/LINUX Agent (SCXAgent)
+#Author : 
+#   Udish Mudiar, Microsoft Customer Service Support Professional
+#Feedback :
+#   Email udmudiar@microsoft.com
+#   Or the engineer you are working with
 
-#Author : Udish Mudiar(udmudiar@microsoft.com), Microsoft Customer Service Support Professional
-#This script is written for data collection from Linux machines which can help in troubleshooting SCOM UNIX/LINUX Agent (SCXAgent)
 
 help()
 {
@@ -14,7 +19,22 @@ help()
     echo "  -n      :scxmonitoringaccount            Specify the SCX Monitoring Account. This will be used to check the sudo privilege for the account."    
 }
 
-CheckParamteres(){
+check_distro(){
+    echo -e "Check distro. The script will proceed only for supported distro.....\n"
+    echo -e "Check distro. The script will proceed only for supported distro.....\n" >> ${path}/scxdatacollector.log    
+    if [ "$(uname)" = 'Linux' ]; then
+        echo -e "\tDistro is Linux. Continuing.....\n"
+        echo -e "\tDistro is Linux. Continuing.....\n" >> ${path}/scxdatacollector.log
+    #elif [ condition ]; then
+         # else if body
+    else
+        echo -e "\tDistro is not Linux. Exiting.....\n"
+        echo -e "\tDistro is not Linux. Exiting....\n" >> ${path}/scxdatacollector.log
+        exit
+    fi  
+}
+
+check_parameters(){
     #checking the number of parameters passed
     #we expect either 1 or 2 parameters which are the SCOM mmaintenance and monitoring account
     #if the parameters passed are greater than 2 then it is advised that you recheck the SCOM Run As Account and Profiles for streamlining your configuration.
@@ -23,13 +43,13 @@ CheckParamteres(){
     if [ $# == 1 ]; then
         echo -e "The argument is: $1.....\n"
         echo -e "The argument is: $1.....\n" >> ${path}/scxdatacollector.log
-        CreateDir "${path}/SCOMLinuxDataCollectorData/sudo"
-        CheckSudoPermission $1
+        create_dir "${path}/SCOMLinuxDataCollectorData/sudo"
+        check_sudo_permission $1
     elif [ $# == 2 ]; then
         echo -e "The arguments are : $1 and $2.....\n"
         echo -e "The arguments are : $1 and $2.....\n" >> ${path}/scxdatacollector.log
-        CreateDir "${path}/SCOMLinuxDataCollectorData/sudo"
-        CheckSudoPermission $1 $2
+        create_dir "${path}/SCOMLinuxDataCollectorData/sudo"
+        check_sudo_permission $1 $2
     elif [ ! -n "${maint}" ] && [ ! -n "${mon}" ]; then
         echo -e "No SCOM Maintenance and Monitoring Account passed. Not collecting sudo details for the users....\n"
         echo -e "No SCOM Maintenance and Monitoring Account passed. Not collecting sudo details for the users....\n" >> ${path}/scxdatacollector.log
@@ -45,7 +65,7 @@ CheckParamteres(){
     fi
 }
 
-CheckDir() {
+check_dir() {
     pwd=`pwd`
     echo -e "Logs will be created in the current working directory i.e. ${pwd} .....\n"
     echo -e "Logs will be created in the current working directory i.e. ${pwd} .....\n" >> ${path}/scxdatacollector.log
@@ -56,23 +76,23 @@ CheckDir() {
         echo -e "\t Path ${pwd} is present in the current working directory. Removing and recreating the directory.....\n"
         echo -e "\t Path ${pwd} is present in the current working directory. Removing and recreating the directory.....\n" >> ${path}/scxdatacollector.log
         rm -rf ${path}/SCOMLinuxDataCollectorData
-        CreateDir "${path}/SCOMLinuxDataCollectorData"
+        create_dir "${path}/SCOMLinuxDataCollectorData"
     else
         echo -e "\t Path ${pwd} is not present in the current working directory. Creating the directory.....\n"
         echo -e "\t Path ${pwd} is not present in the current working directory. Creating the directory.....\n" >> ${path}/scxdatacollector.log
-        CreateDir "${path}/SCOMLinuxDataCollectorData"
+        create_dir "${path}/SCOMLinuxDataCollectorData"
     fi 
     
-    CreateDir "${path}/SCOMLinuxDataCollectorData/logs"
-    CreateDir "${path}/SCOMLinuxDataCollectorData/certs"
-    CreateDir "${path}/SCOMLinuxDataCollectorData/network"    
-    CreateDir "${path}/SCOMLinuxDataCollectorData/scxdirectorystructure"
-    CreateDir "${path}/SCOMLinuxDataCollectorData/pam"
-    CreateDir "${path}/SCOMLinuxDataCollectorData/scxprovider"
-    CreateDir "${path}/SCOMLinuxDataCollectorData/configfiles"
+    create_dir "${path}/SCOMLinuxDataCollectorData/logs"
+    create_dir "${path}/SCOMLinuxDataCollectorData/certs"
+    create_dir "${path}/SCOMLinuxDataCollectorData/network"    
+    create_dir "${path}/SCOMLinuxDataCollectorData/scxdirectorystructure"
+    create_dir "${path}/SCOMLinuxDataCollectorData/pam"
+    create_dir "${path}/SCOMLinuxDataCollectorData/scxprovider"
+    create_dir "${path}/SCOMLinuxDataCollectorData/configfiles"
 }
 
-CreateDir(){    
+create_dir(){    
     
     if [ -d $1 ]; then        
         echo -e "\t Path ${path} exists. No action needed......\n"
@@ -84,22 +104,22 @@ CreateDir(){
     fi
 }
 
-CollectOSDetails() {
+collect_os_details() {
     echo -e "Collecting OS Details.....\n"
     echo -e "\nCollecting OS Details.....\n" >> ${path}/scxdatacollector.log 
-    CollectHostName
-    CollectOSVersion
-    CollectCompute
-    CollectDiskSpace
-    CollectNetworkDetails
-    CollectOpensslDetails
-    CollectSSHDetails
-    CollectCryptoDetails
-    CheckIsKerberosEnabled
-    CollectSELinuxDetails     
+    collect_host_name
+    collect_os_version
+    collect_compute
+    collect_disk_space
+    collect_network_details
+    collect_openssl_details
+    collect_openssh_details
+    collect_crypto_details
+    check_kerberos_enabled
+    collect_selinux_details     
 }
 
-CollectHostName() {
+collect_host_name() {
     echo -e "\tCollecting HostName Details.....\n"
     echo -e "\tCollecting Hostname Details.....\n" >> ${path}/scxdatacollector.log
     echo -e "\n******HOSTNAME******"  > ${path}/SCOMLinuxDataCollectorData/OSDetails.txt 
@@ -108,20 +128,20 @@ CollectHostName() {
     echo -e "\n******HOSTNAME FOR CERTS******"  >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt
     nslookuphostname=`nslookup $(hostname) | grep '^Name:' | awk '{print $2}' | grep $(hostname)`
     if [ "${nslookuphostname}" ]; then      
-        ${nslookuphostname} >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt
+        echo ${nslookuphostname} >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt
     else
         echo -e "Unable to resolve hostname from nslookup....." >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt
     fi    
 }
 
-CollectOSVersion(){
+collect_os_version(){
     echo -e "\tCollecting OS Details.....\n"
     echo -e "\tCollecting OS Details.....\n" >> ${path}/scxdatacollector.log
     echo -e "\n******OS VERSION******"  >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt   
     cat /etc/*release >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt  
 }
 
-CollectCompute(){
+collect_compute(){
     echo -e "\tCollecting Memory and CPU for omi processes.....\n"
     echo -e "\tCollecting Memory and CPU for omi processes.....\n" >> ${path}/scxdatacollector.log
     echo -e "\n******MEM AND CPU FOR OMISERVER PROCESS******"  >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt  
@@ -132,14 +152,14 @@ CollectCompute(){
     ps -C omiagent -o %cpu,%mem,cmd >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt 
 }
 
-CollectOpensslDetails() {
+collect_openssl_details() {
     echo -e "\tCollecting Openssl & Openssh Details.....\n"
     echo -e "\tCollecting Openssl & Openssh Details.....\n" >> ${path}/scxdatacollector.log
     echo -e "\n******OPENSSL & OPENSSH VERSION******"  >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt
     ssh -V  >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt  2>&1  
 }
 
-CollectSSHDetails(){
+collect_openssh_details(){
     echo -e "\tCollecting SSH Details.....\n"
     echo -e "\tCollecting SSH Details.....\n" >> ${path}/scxdatacollector.log
     #checking Kex settings in sshd. We are interested in the sshd server settings.    
@@ -154,38 +174,44 @@ CollectSSHDetails(){
     sshd -T | grep keyalgorithms >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt
 }
 
-CollectDiskSpace(){
+collect_disk_space(){
     echo -e "\tCollecting the file system usage.....\n"
     echo -e "\tCollecting the file system usage.....\n" >> ${path}/scxdatacollector.log
     echo -e "\n******FILE SYSTEM DETAILS******"  >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt
     df -h >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt
 }
 
-CheckIsKerberosEnabled(){
+check_kerberos_enabled(){
     #This is not a full proof method as there are 3rd party tools who uses different ways to enable Kerb auth. Need more testing.
     echo -e "\tChecking if Kerberos Authentication is enabled. This might not be 100% accurate....\n"
     echo -e "\tChecking if Kerberos Authentication is enabled. This might not be 100% accurate....\n" >> ${path}/scxdatacollector.log
-    isKerb=`cat /etc/krb5.conf | grep -E "^default_realm" | wc -l`
-    if [ ${isKerb} == 1 ]; then
-        echo -e "\t\t Kerberos Authentication is enabled. This might not be 100% accurate....\n"
-        echo -e "\t\t Kerberos Authentication is enabled. This might not be 100% accurate....\n" >> ${path}/scxdatacollector.log    
+    if [ -f "/etc/krb5.conf" ]; then
+        sKerb=`cat /etc/krb5.conf | grep -E "^default_realm" | wc -l`
+        if [ ${isKerb} == 1 ]; then
+            echo -e "\t\t Kerberos Authentication is enabled. This might not be 100% accurate....\n"
+            echo -e "\t\t Kerberos Authentication is enabled. This might not be 100% accurate....\n" >> ${path}/scxdatacollector.log    
+        else
+            echo -e "\t\t Kerberos Authentication is not enabled. This might not be 100% accurate....\n"
+            echo -e "\t\t Kerberos Authentication is not enabled. This might not be 100% accurate....\n" >> ${path}/scxdatacollector.log 
+        fi  
     else
         echo -e "\t\t Kerberos Authentication is not enabled. This might not be 100% accurate....\n"
-        echo -e "\t\t Kerberos Authentication is not enabled. This might not be 100% accurate....\n" >> ${path}/scxdatacollector.log 
-    fi
-    
+        echo -e "\t\t Kerberos Authentication is not enabled. This might not be 100% accurate....\n" >> ${path}/scxdatacollector.log
+    fi    
 }
 
-CollectNetworkDetails(){
+collect_network_details(){
     echo -e "\tCollecting the network details.....\n"
     echo -e "\tCollecting the network details.....\n" >> ${path}/scxdatacollector.log
     echo -e "\n******IP ADDRESS DETAILS******"  >> ${path}/SCOMLinuxDataCollectorData/network/ipdetails
     ip addr show >> ${path}/SCOMLinuxDataCollectorData/network/ipdetails
     echo -e "\n******NETSTAT DETAILS******"  >> ${path}/SCOMLinuxDataCollectorData/network/ipdetails
-    netstat -anp >> ${path}/SCOMLinuxDataCollectorData/network/netstatdetails
+    #netstat is a deprecated utility.
+    #netstat -anp >> ${path}/SCOMLinuxDataCollectorData/network/netstatdetails
+    ss >> ${path}/SCOMLinuxDataCollectorData/network/netstatdetails
 }
 
-CheckSudoPermission(){    
+check_sudo_permission(){    
     account_1=$(echo $1)
     account_2=$(echo $2)
 
@@ -204,7 +230,7 @@ CheckSudoPermission(){
    fi    
 }
 
-CollectCryptoDetails(){
+collect_crypto_details(){
     echo -e "\tCollecting Crypto details.....\n"
     echo -e "\tCollecting Crypto details.....\n" >> ${path}/scxdatacollector.log
     if [ "$(which update-crypto-policie 2>/dev/null)" ]; then
@@ -216,7 +242,7 @@ CollectCryptoDetails(){
     fi  
 }
 
-CollectSELinuxDetails(){
+collect_selinux_details(){
     echo -e "\tCollecting SELinux details.....\n"
     echo -e "\tCollecting SELinux details.....\n" >> ${path}/scxdatacollector.log
     if [ "$(which sestatus 2>/dev/null)" ]; then
@@ -228,24 +254,57 @@ CollectSELinuxDetails(){
     fi 
 }
 
-CheckIsSCXInstalled(){
-    echo -e "Checking if SCX is installed.....\n"
-    echo -e "Checking if SCX is installed.....\n" >> ${path}/scxdatacollector.log
-    scx=`rpm -qa scx`   
-    if [ $scx ]; then
-        echo -e "\t SCX package is installed. Collecting SCX details.....\n"
-        echo -e "\t SCX package is installed. Collecting SCX details.....\n" >> ${path}/scxdatacollector.log        
-        #calling function to gather more information about SCX
-        CollectSCXDetails         
+detect_installer(){
+    # If DPKG lives here, assume we use that. Otherwise we use RPM.
+    echo -e "Checking installer should be rpm or dpkg.....\n" >> ${path}/scxdatacollector.log 
+    type dpkg > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        installer=dpkg
+        echo -e "\tFound dpkg installer....\n" >> ${path}/scxdatacollector.log
+        check_scx_installed $installer
     else
-        echo -e "SCX package is not installed. Not collecting any further details.....\n" >> ${path}/scxdatacollector.log   
+        installer=rpm
+        echo -e "\tFound rpm installer......\n" >> ${path}/scxdatacollector.log
+        check_scx_installed $installer
     fi
 }
 
-CollectSCXDetails(){
+check_scx_installed(){
+    echo -e "Checking if SCX is installed.....\n"
+    echo -e "Checking if SCX is installed.....\n" >> ${path}/scxdatacollector.log
+    #we will check if the installer is rpm or dpkg and based on that run the package command.  
+    if [ "$installer" = "rpm" ]; then
+        scx=`rpm -qa scx 2>/dev/null`   
+        if [ "$scx" ]; then
+            echo -e "\t SCX package is installed. Collecting SCX details.....\n"
+            echo -e "\t SCX package is installed. Collecting SCX details.....\n" >> ${path}/scxdatacollector.log        
+            #calling function to gather more information about SCX
+            collect_scx_details         
+        else
+            echo -e "SCX package is not installed. Not collecting any further details.....\n" >> ${path}/scxdatacollector.log   
+        fi   
+    #we will assume if not rpm then dpkg.
+    else
+        scx=`dpkg -s scx 2>/dev/null`   
+        if [ "$scx" ]; then
+            echo -e "\t SCX package is installed. Collecting SCX details.....\n"
+            echo -e "\t SCX package is installed. Collecting SCX details.....\n" >> ${path}/scxdatacollector.log        
+            #calling function to gather more information about SCX
+            collect_scx_details         
+        else
+            echo -e "SCX package is not installed. Not collecting any further details.....\n" >> ${path}/scxdatacollector.log   
+        fi
+    fi
+    
+    
+}
+
+collect_scx_details(){
     scxversion=`scxadmin -version`
     scxstatus=`scxadmin -status`
-    netstat=`netstat -anp | grep :1270`
+    #netstat is a deprecated utility
+    #netstat=`netstat -anp | grep :1270`
+    netstat=`ss -lp | grep -E ":opsmgr|:1270"`
     omiprocesses=`ps -ef | grep [o]mi | grep -v grep`
     omidstatus=`systemctl status omid`     
     echo -e "*****SCX VERSION******\n" > ${path}/SCOMLinuxDataCollectorData/SCXDetails.txt
@@ -264,22 +323,22 @@ CollectSCXDetails(){
     #omiserverstatus=`/opt/omi/bin/omiserver` 
     #echo -e "omiserver status:\n $omiserverstatus\n" >> ${path}/scxdatacollector.log
 
-    CollectSCXConfigFiles
-    CollectOmiScxLogsDetails
-    CollectCertDetails
-    CollectSCXDirectoryStructure
-    CollectOmiPam
-    CollectSCXProviderDetails
-    CheckforCoreFiles
+    collect_scx_config_files
+    collect_omi_scx_logs
+    collect_omi_scx_certs
+    collect_scx_directories_structure
+    collect_omi_pam
+    collect_scx_provider_status
+    check_omi_core_files
 }
 
-CollectSCXConfigFiles(){
+collect_scx_config_files(){
     echo -e "\t Copying config files to the current directory.....\n"
     echo -e "\t Copying config files to the current directory.....\n" >> ${path}/scxdatacollector.log
     cp -f /etc/opt/omi/conf/omiserver.conf ${path}/SCOMLinuxDataCollectorData/configfiles/omiserver_copy.conf
 }
 
-CollectOmiScxLogsDetails(){
+collect_omi_scx_logs(){
     echo -e "\t Collecting details of OMI and SCX logs.....\n"
     echo -e "\t Collecting details of OMI and SCX logs.....\n" >> ${path}/scxdatacollector.log
     omilogsetting=`cat /etc/opt/omi/conf/omiserver.conf | grep -i loglevel`
@@ -316,7 +375,7 @@ CollectOmiScxLogsDetails(){
     fi    
 }
 
-CollectCertDetails(){
+collect_omi_scx_certs(){
     echo -e "\t Collecting SCX cert details.....\n"
     echo -e "\t Collecting SCX cert details.....\n" >> ${path}/scxdatacollector.log
 
@@ -361,7 +420,7 @@ CollectCertDetails(){
     fi  
 }
 
-CollectSCXDirectoryStructure(){
+collect_scx_directories_structure(){
     echo -e "\t Collecting SCX DirectoryStructure.....\n"
     echo -e "\t Collecting SCX DirectoryStructure.....\n" >> ${path}/scxdatacollector.log
     ls -lR /var/opt/microsoft/ >> ${path}/SCOMLinuxDataCollectorData/scxdirectorystructure/var-opt-microsoft
@@ -371,7 +430,7 @@ CollectSCXDirectoryStructure(){
     ls -lR /etc/opt/omi >> ${path}/SCOMLinuxDataCollectorData/scxdirectorystructure/etc-opt-omi
 }
 
-CollectOmiPam(){
+collect_omi_pam(){
     echo -e "\t Collecting omi PAM details.....\n"
     echo -e "\t Collecting omi PAM details.....\n" >> ${path}/scxdatacollector.log
     if [ -f /etc/opt/omi/conf/pam.conf ]; then
@@ -382,7 +441,7 @@ CollectOmiPam(){
     fi
 }
 
-CollectSCXProviderDetails(){
+collect_scx_provider_status(){
    echo -e "\t Collecting SCX Provider Details.....\n"
    echo -e "\t Collecting SCX Provider Detail.....\n" >> ${path}/scxdatacollector.log
    if [ -d "/etc/opt/omi/conf/omiregister" ]; then
@@ -400,7 +459,7 @@ CollectSCXProviderDetails(){
    /opt/omi/bin/omicli ei root/scx SCX_OperatingSystem >> ${path}/SCOMLinuxDataCollectorData/scxprovider/scxproviderstatus
 }
 
-CheckforCoreFiles(){
+check_omi_core_files(){
    echo -e "\t Check for core files in SCX directory /var/opt/omi/run/.....\n"
    echo -e "\t Check for core files in SCX directory /var/opt/omi/run/......\n" >> ${path}/scxdatacollector.log
 
@@ -414,71 +473,80 @@ CheckforCoreFiles(){
 
 }
 
-ArchiveLogs () {
+archive_logs () {
    echo -e "\nSuccessfully completed the SCOM Linux Data Collector.....\n" >> ${path}/scxdatacollector.log
-   echo -e "Moving the scxdatacollector.log file to SCOMLinuxDataCollectorData. Archiving and zipping SCOMLinuxDataCollectorData. Clean up other data....\n"
-   echo -e "Moving the scxdatacollector.log file to SCOMLinuxDataCollectorData. Archiving and zipping SCOMLinuxDataCollectorData. Clean up other data....\n" >> ${path}/scxdatacollector.log
+   if [ -f "${path}/SCOMLinuxDataCollectorData.tar.gz" ]; then
+      echo -e "\nFile SCOMLinuxDataCollectorData.tar.gz already exist. Cleaning up before new archive.....\n"
+      echo -e "\nFile SCOMLinuxDataCollectorData.tar.gz already exist. Cleaning up before new archive.....\n"  >> ${path}/scxdatacollector.log
+      rm -rf ${path}/SCOMLinuxDataCollectorData.tar.gz
+
+   fi
+   echo -e "Moving the scxdatacollector.log file to SCOMLinuxDataCollectorData. Archiving and zipping SCOMLinuxDataCollectorData. Clean up other data...."
+   echo -e "Moving the scxdatacollector.log file to SCOMLinuxDataCollectorData. Archiving and zipping SCOMLinuxDataCollectorData. Clean up other data...." >> ${path}/scxdatacollector.log
    mv ${path}/scxdatacollector.log ${path}/SCOMLinuxDataCollectorData
-   tar cf ${path}/SCOMLinuxDataCollectorData.tar ${path}/SCOMLinuxDataCollectorData
+   tar -cf ${path}/SCOMLinuxDataCollectorData.tar -T ${path}/SCOMLinuxDataCollectorData   
+ 
    gzip ${path}/SCOMLinuxDataCollectorData.tar
    rm -rf ${path}/SCOMLinuxDataCollectorData.tar
    rm -rf ${path}/SCOMLinuxDataCollectorData
 }
 
 #this function fetches the maximum information
-SubMainRoot(){
-    CheckParamteres $maint $mon
-    CheckDir
-    CollectOSDetails
-    CheckIsSCXInstalled
+sub_main_root(){
+    check_parameters $maint $mon
+    check_dir
+    collect_os_details
+    detect_installer
     #This has to be the last function call in the script
-    ArchiveLogs
+    archive_logs
 }
 
 #this function fetches the less information
-SubMainNonRoot(){
-    CheckParamteres "$@"
-    CheckDir    
-    CollectHostName
-    CollectOSDetails
-    CollectCompute
-    CollectDiskSpace
-    CollectNetworkDetails
-    CollectOpensslDetails
-    CollectSSHDetails
-    CollectCryptoDetails 
-    CheckIsKerberosEnabled 
-    CheckIsSCXInstalled
+sub_main_non_root(){
+    check_parameters "$@"
+    check_dir    
+    collect_host_name
+    collect_os_details
+    collect_compute
+    collect_disk_space
+    collect_network_details
+    collect_openssl_details
+    collect_openssh_details
+    collect_crypto_details 
+    check_kerberos_enabled 
+    check_scx_installed
 }
 
-Main(){
-
+main(){
+    echo -e "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+    #clearing the scxdatacollector.log file to start with
+    echo "" > ${path}/scxdatacollector.log
+    
     if [ ! -n "${path}"  ]; then
         path=`pwd`   
         echo -e "Log Collection Path is NULL. Setting Path to current working directory......\n"
-        echo -e "Log Collection Path is NULL. Setting Path to current working directory......\n" > ${path}/scxdatacollector.log                                 
+        echo -e "Log Collection Path is NULL. Setting Path to current working directory......\n" >> ${path}/scxdatacollector.log                                 
     fi
 
-    #Currently supporting SCX 2016+ versions
-    echo -e "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+    #Currently supporting SCX 2016+ versions    
     echo -e "Starting the SCOM Linux Data Collector.....\nDisclaimer: Currently supporting SCX 2016+ versions\n"
     echo -e "Starting the SCOM Linux Data Collector.....\n" > ${path}/scxdatacollector.log
     echo -e "The arguments passed are: \n Path = ${path} \n Maint = ${maint} \n Mon = ${mon} \n"
-    echo -e "The arguments passed are: \n Path = ${path} \n Maint = ${maint} \n Mon = ${mon} \n" > ${path}/scxdatacollector.log
+    echo -e "The arguments passed are: \n Path = ${path} \n Maint = ${maint} \n Mon = ${mon} \n" >> ${path}/scxdatacollector.log
     
+    #checking the distro. Will only continue in supported distro
+    check_distro
 
     #fetching the user under which the script is running.    
     user=`whoami`
     echo -e "Script is running under user: ${user}.....\n"
     echo -e "Script is running under user: ${user}.....\n" >> ${path}/scxdatacollector.log
     if [ $user == 'root' ]; then
-         echo -e "\t User is root. Collecting maximum information.....\n"
-         
-         
-         SubMainRoot $path $maint $mon    
+         echo -e "\t User is root. Collecting maximum information.....\n" 
+         sub_main_root $path $maint $mon    
     else
          echo -e "\t User is non root. Collecting less information.....\n"
-         SubMainNonRoot "$@"
+         sub_main_non_root "$@"
     fi 
 }
 
@@ -512,7 +580,7 @@ while getopts "ho:m:n:" option; do
 done
 
 #function calls
-Main $path $maint $mon
+main $path $maint $mon
 
 echo -e "\nSuccessfully completed the SCOM Linux Data Collector.....\n"
 echo -e "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
