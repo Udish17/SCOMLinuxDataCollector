@@ -484,7 +484,7 @@ archive_logs () {
    echo -e "Moving the scxdatacollector.log file to SCOMLinuxDataCollectorData. Archiving and zipping SCOMLinuxDataCollectorData. Clean up other data...."
    echo -e "Moving the scxdatacollector.log file to SCOMLinuxDataCollectorData. Archiving and zipping SCOMLinuxDataCollectorData. Clean up other data...." >> ${path}/scxdatacollector.log
    mv ${path}/scxdatacollector.log ${path}/SCOMLinuxDataCollectorData
-   tar -cf ${path}/SCOMLinuxDataCollectorData.tar -T ${path}/SCOMLinuxDataCollectorData   
+   tar -cf ${path}/SCOMLinuxDataCollectorData.tar ${path}/SCOMLinuxDataCollectorData  
  
    gzip ${path}/SCOMLinuxDataCollectorData.tar
    rm -rf ${path}/SCOMLinuxDataCollectorData.tar
