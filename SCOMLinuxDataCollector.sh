@@ -498,7 +498,7 @@ sub_main_root(){
     check_sudo_permission $maint $mon
     detect_installer
     #This has to be the last function call in the script
-    #archive_logs
+    archive_logs
 }
 
 #this function fetches the less information
@@ -508,7 +508,7 @@ sub_main_non_root(){
     check_sudo_permission $maint $mon
     detect_installer sudo
     #This has to be the last function call in the script
-    #archive_logs
+    archive_logs
 }
 
 main(){
