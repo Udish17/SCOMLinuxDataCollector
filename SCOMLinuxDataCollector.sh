@@ -41,13 +41,13 @@ check_parameters(){
     #you can refer tot he below blog
     #https://udishtech.com/how-to-configure-sudoers-file-for-scom-monitoring/
     if [ $# == 1 ]; then
-        echo -e "The argument is: $1.....\n"
-        echo -e "The argument is: $1.....\n" >> ${path}/scxdatacollector.log
+        echo -e "The argument for sudo is: $1.....\n"
+        echo -e "The argument for sudo is: $1.....\n" >> ${path}/scxdatacollector.log
         create_dir "${path}/SCOMLinuxDataCollectorData/sudo"
         check_sudo_permission $1
     elif [ $# == 2 ]; then
-        echo -e "The arguments are : $1 and $2.....\n"
-        echo -e "The arguments are : $1 and $2.....\n" >> ${path}/scxdatacollector.log
+        echo -e "The arguments for sudo are : $1 and $2.....\n"
+        echo -e "The arguments for sudo are : $1 and $2.....\n" >> ${path}/scxdatacollector.log
         create_dir "${path}/SCOMLinuxDataCollectorData/sudo"
         check_sudo_permission $1 $2
     elif [ ! -n "${maint}" ] && [ ! -n "${mon}" ]; then
@@ -60,21 +60,20 @@ check_parameters(){
        elif [[ "${response}" == "N" ]]; then
             echo -e "Continuing script. But not collecting sudo details for the users....\n"
             echo -e "Continuing script. But not collecting sudo details for the users....\n" >> ${path}/scxdatacollector.log
-       fi
-       
+       fi       
     fi
 }
 
 check_dir() {
     pwd=`pwd`
-    echo -e "Logs will be created in the current working directory i.e. ${pwd} .....\n"
-    echo -e "Logs will be created in the current working directory i.e. ${pwd} .....\n" >> ${path}/scxdatacollector.log
+    echo -e "Logs will be created in the output directory i.e. ${path} .....\n"
+    echo -e "Logs will be created in the output directory i.e. ${path} .....\n" >> ${path}/scxdatacollector.log
     echo -e "Creating the directory strucuture to store the data from the collector.....\n"
     echo -e "Creating the directory strucuture to store the data from the collector.....\n" >> ${path}/scxdatacollector.log
 
     if [ -d "${path}/SCOMLinuxDataCollectorData" ]; then
-        echo -e "\t Path ${pwd} is present in the current working directory. Removing and recreating the directory.....\n"
-        echo -e "\t Path ${pwd} is present in the current working directory. Removing and recreating the directory.....\n" >> ${path}/scxdatacollector.log
+        echo -e "\t Path ${path}/SCOMLinuxDataCollectorData is present. Removing and recreating the directory.....\n"
+        echo -e "\t Path ${path}/SCOMLinuxDataCollectorData is present. Removing and recreating the directory.....\n" >> ${path}/scxdatacollector.log
         rm -rf ${path}/SCOMLinuxDataCollectorData
         create_dir "${path}/SCOMLinuxDataCollectorData"
     else
@@ -92,14 +91,13 @@ check_dir() {
     create_dir "${path}/SCOMLinuxDataCollectorData/configfiles"
 }
 
-create_dir(){    
-    
+create_dir(){        
     if [ -d $1 ]; then        
-        echo -e "\t Path ${path} exists. No action needed......\n"
-        echo -e "\t Path ${path} exists. No action needed......\n" >> ${path}/scxdatacollector.log
+        echo -e "\t Path $1 exists. No action needed......\n"
+        echo -e "\t Path $1 exists. No action needed......\n" >> ${path}/scxdatacollector.log
     else        
-        echo -e "\t Path ${path} does not exists. Proceed with creation.....\n"
-        echo -e "\t Path ${path} does not exists. Proceed with creation.....\n" >> ${path}/scxdatacollector.log
+        echo -e "\t Path $1 does not exists. Proceed with creation.....\n"
+        echo -e "\t Path $1 does not exists. Proceed with creation.....\n" >> ${path}/scxdatacollector.log
         mkdir -p $1
     fi
 }
@@ -113,7 +111,7 @@ collect_os_details() {
     collect_disk_space
     collect_network_details
     collect_openssl_details
-    collect_openssh_details
+    collect_openssh_details sudo
     collect_crypto_details
     check_kerberos_enabled
     collect_selinux_details     
@@ -165,13 +163,13 @@ collect_openssh_details(){
     #checking Kex settings in sshd. We are interested in the sshd server settings.    
     echo -e "\n******SSH DETAILS******"  >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt
     echo -e "\n******KEY EXCHANGE ALGORITHIM (KEX) DETAILS******"  >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt
-    sshd -T | grep -E ^kexalgorithms >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt    
+    $1 sshd -T | grep -E ^kexalgorithms >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt    
     echo -e "\n******CIPHERS DETAILS******"  >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt
-    sshd -T | grep ciphers>> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt
+    $1 sshd -T | grep ciphers>> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt
     echo -e "\n******MACS DETAILS******"  >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt
-    sshd -T | grep macs >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt
+    $1 sshd -T | grep macs >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt
     echo -e "\n******HOST KEY ALGORITHIMS DETAILS******"  >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt
-    sshd -T | grep keyalgorithms >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt
+    $1 sshd -T | grep keyalgorithms >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt
 }
 
 collect_disk_space(){
@@ -186,8 +184,8 @@ check_kerberos_enabled(){
     echo -e "\tChecking if Kerberos Authentication is enabled. This might not be 100% accurate....\n"
     echo -e "\tChecking if Kerberos Authentication is enabled. This might not be 100% accurate....\n" >> ${path}/scxdatacollector.log
     if [ -f "/etc/krb5.conf" ]; then
-        sKerb=`cat /etc/krb5.conf | grep -E "^default_realm" | wc -l`
-        if [ ${isKerb} == 1 ]; then
+        isKerb=`cat /etc/krb5.conf | grep -E "^default_realm" | wc -l`
+        if [ ${isKerb} = 1 ]; then
             echo -e "\t\t Kerberos Authentication is enabled. This might not be 100% accurate....\n"
             echo -e "\t\t Kerberos Authentication is enabled. This might not be 100% accurate....\n" >> ${path}/scxdatacollector.log    
         else
@@ -218,11 +216,13 @@ check_sudo_permission(){
    if (( $# == 1 )); then
         echo -e "Checking the sudo permissions for the account ${account_1}...\n"
         echo -e "Checking the sudo permissions for the account ${account_1}.....\n" >> ${path}/scxdatacollector.log
-        echo -e "******SUDO DETAILS FOR ${account_1}*****\n" > ${path}/SCOMLinuxDataCollectorData/sudo/${account_1}
+        create_dir "${path}/SCOMLinuxDataCollectorData/sudo"
+        echo -e "******SUDO DETAILS FOR ${account_1}*****\n" > ${path}/SCOMLinuxDataCollectorData/sudo/${account_1}        
         sudo -l -U ${account_1} >> ${path}/SCOMLinuxDataCollectorData/sudo/${account_1}
    elif (( $# == 2 )); then
         echo -e "Checking the sudo permissions for the account ${account_1} and ${account_2}...\n"
         echo -e "Checking the sudo permissions for the account ${account_1} and ${account_2}...\n" >> ${path}/scxdatacollector.log
+        create_dir "${path}/SCOMLinuxDataCollectorData/sudo"
         echo -e "******SUDO DETAILS FOR ${account_1}*****\n" > ${path}/SCOMLinuxDataCollectorData/sudo/${account_1}
         sudo -l -U ${account_1} >> ${path}/SCOMLinuxDataCollectorData/sudo/${account_1}
         echo -e "******SUDO DETAILS FOR ${account_2}*****\n" > ${path}/SCOMLinuxDataCollectorData/sudo/${account_2}
@@ -261,11 +261,11 @@ detect_installer(){
     if [ $? -eq 0 ]; then
         installer=dpkg
         echo -e "\tFound dpkg installer....\n" >> ${path}/scxdatacollector.log
-        check_scx_installed $installer
+        check_scx_installed $installer $1
     else
         installer=rpm
-        echo -e "\tFound rpm installer......\n" >> ${path}/scxdatacollector.log
-        check_scx_installed $installer
+        echo -e "\tFound rpm installer......\n" >> ${path}/scxdatacollector.log        
+        check_scx_installed $installer $1
     fi
 }
 
@@ -279,7 +279,7 @@ check_scx_installed(){
             echo -e "\t SCX package is installed. Collecting SCX details.....\n"
             echo -e "\t SCX package is installed. Collecting SCX details.....\n" >> ${path}/scxdatacollector.log        
             #calling function to gather more information about SCX
-            collect_scx_details         
+            collect_scx_details $2        
         else
             echo -e "SCX package is not installed. Not collecting any further details.....\n" >> ${path}/scxdatacollector.log   
         fi   
@@ -290,7 +290,7 @@ check_scx_installed(){
             echo -e "\t SCX package is installed. Collecting SCX details.....\n"
             echo -e "\t SCX package is installed. Collecting SCX details.....\n" >> ${path}/scxdatacollector.log        
             #calling function to gather more information about SCX
-            collect_scx_details         
+            collect_scx_details $2        
         else
             echo -e "SCX package is not installed. Not collecting any further details.....\n" >> ${path}/scxdatacollector.log   
         fi
@@ -326,15 +326,15 @@ collect_scx_details(){
     collect_scx_config_files
     collect_omi_scx_logs
     collect_omi_scx_certs
-    collect_scx_directories_structure
+    collect_scx_directories_structure $1
     collect_omi_pam
     collect_scx_provider_status
     check_omi_core_files
 }
 
 collect_scx_config_files(){
-    echo -e "\t Copying config files to the current directory.....\n"
-    echo -e "\t Copying config files to the current directory.....\n" >> ${path}/scxdatacollector.log
+    echo -e "\t Copying config files.....\n"
+    echo -e "\t Copying config files.....\n" >> ${path}/scxdatacollector.log
     cp -f /etc/opt/omi/conf/omiserver.conf ${path}/SCOMLinuxDataCollectorData/configfiles/omiserver_copy.conf
 }
 
@@ -422,12 +422,12 @@ collect_omi_scx_certs(){
 
 collect_scx_directories_structure(){
     echo -e "\t Collecting SCX DirectoryStructure.....\n"
-    echo -e "\t Collecting SCX DirectoryStructure.....\n" >> ${path}/scxdatacollector.log
-    ls -lR /var/opt/microsoft/ >> ${path}/SCOMLinuxDataCollectorData/scxdirectorystructure/var-opt-microsoft
-    ls -lR /var/opt/omi >> ${path}/SCOMLinuxDataCollectorData/scxdirectorystructure/var-opt-omi
-    ls -lR /opt/omi/ >> ${path}/SCOMLinuxDataCollectorData/scxdirectorystructure/opt-omi
-    ls -lR /etc/opt/microsoft/ >> ${path}/SCOMLinuxDataCollectorData/scxdirectorystructure/etc-opt-microsoft
-    ls -lR /etc/opt/omi >> ${path}/SCOMLinuxDataCollectorData/scxdirectorystructure/etc-opt-omi
+    echo -e "\t Collecting SCX DirectoryStructure.....\n" >> ${path}/scxdatacollector.log    
+    $1 ls -lR /var/opt/microsoft/ >> ${path}/SCOMLinuxDataCollectorData/scxdirectorystructure/var-opt-microsoft
+    $1 ls -lR /var/opt/omi >> ${path}/SCOMLinuxDataCollectorData/scxdirectorystructure/var-opt-omi
+    $1 ls -lR /opt/omi/ >> ${path}/SCOMLinuxDataCollectorData/scxdirectorystructure/opt-omi
+    $1 ls -lR /etc/opt/microsoft/ >> ${path}/SCOMLinuxDataCollectorData/scxdirectorystructure/etc-opt-microsoft
+    $1 ls -lR /etc/opt/omi >> ${path}/SCOMLinuxDataCollectorData/scxdirectorystructure/etc-opt-omi
 }
 
 collect_omi_pam(){
@@ -492,40 +492,35 @@ archive_logs () {
 }
 
 #this function fetches the maximum information
-sub_main_root(){
-    check_parameters $maint $mon
-    check_dir
+sub_main_root(){    
+    check_dir $path
     collect_os_details
+    check_sudo_permission $maint $mon
     detect_installer
     #This has to be the last function call in the script
-    archive_logs
+    #archive_logs
 }
 
 #this function fetches the less information
 sub_main_non_root(){
-    check_parameters "$@"
-    check_dir    
-    collect_host_name
+    check_dir $path
     collect_os_details
-    collect_compute
-    collect_disk_space
-    collect_network_details
-    collect_openssl_details
-    collect_openssh_details
-    collect_crypto_details 
-    check_kerberos_enabled 
-    check_scx_installed
+    check_sudo_permission $maint $mon
+    detect_installer sudo
+    #This has to be the last function call in the script
+    #archive_logs
 }
 
 main(){
     echo -e "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
     #clearing the scxdatacollector.log file to start with
-    echo "" > ${path}/scxdatacollector.log
+    #using sudo out-of-box even if the user is root to avoid permission denied on the intial log file creation.
+    sudo echo "" > ${path}/scxdatacollector.log
     
-    if [ ! -n "${path}"  ]; then
-        path=`pwd`   
+    if [ ! -n "${path}"  ]; then          
         echo -e "Log Collection Path is NULL. Setting Path to current working directory......\n"
-        echo -e "Log Collection Path is NULL. Setting Path to current working directory......\n" >> ${path}/scxdatacollector.log                                 
+        echo -e "Log Collection Path is NULL. Setting Path to current working directory......\n" >> ${path}/scxdatacollector.log
+        path=`pwd`
     fi
 
     #Currently supporting SCX 2016+ versions    
@@ -545,8 +540,8 @@ main(){
          echo -e "\t User is root. Collecting maximum information.....\n" 
          sub_main_root $path $maint $mon    
     else
-         echo -e "\t User is non root. Collecting less information.....\n"
-         sub_main_non_root "$@"
+         echo -e "\t User is non root. Collecting information based on the level of privilege.....\n"
+         sub_main_non_root $path $maint $mon
     fi 
 }
 
