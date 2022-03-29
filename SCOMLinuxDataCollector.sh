@@ -170,6 +170,9 @@ collect_openssh_details(){
     $1 sshd -T | grep macs >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt
     echo -e "\n******HOST KEY ALGORITHIMS DETAILS******"  >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt
     $1 sshd -T | grep keyalgorithms >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt
+    #copy the sshd configuration file
+    echo -e "\n******Copying sshd config file******"  >> ${path}/SCOMLinuxDataCollectorData/OSDetails.txt
+    cp /etc/ssh/sshd_config  ${path}/SCOMLinuxDataCollectorData/configfiles/sshd_config_copy
 }
 
 collect_disk_space(){
@@ -483,6 +486,7 @@ archive_logs () {
    fi
    echo -e "Moving the scxdatacollector.log file to SCOMLinuxDataCollectorData. Archiving and zipping SCOMLinuxDataCollectorData. Clean up other data...."
    echo -e "Moving the scxdatacollector.log file to SCOMLinuxDataCollectorData. Archiving and zipping SCOMLinuxDataCollectorData. Clean up other data...." >> ${path}/scxdatacollector.log
+   echo -e "\n $(date) Successfully completed the SCOM Linux Data Collector steps. Few steps remaining....\n" >> ${path}/scxdatacollector.log
    mv ${path}/scxdatacollector.log ${path}/SCOMLinuxDataCollectorData
    tar -cf ${path}/SCOMLinuxDataCollectorData.tar ${path}/SCOMLinuxDataCollectorData  
  
@@ -518,14 +522,14 @@ main(){
     sudo echo "" > ${path}/scxdatacollector.log
     
     if [ ! -n "${path}"  ]; then          
-        echo -e "Log Collection Path is NULL. Setting Path to current working directory......\n"
+        #echo -e "Log Collection Path is NULL. Setting Path to current working directory......\n"
         echo -e "Log Collection Path is NULL. Setting Path to current working directory......\n" >> ${path}/scxdatacollector.log
         path=`pwd`
     fi
 
     #Currently supporting SCX 2016+ versions    
     echo -e "Starting the SCOM Linux Data Collector.....\nDisclaimer: Currently supporting SCX 2016+ versions\n"
-    echo -e "Starting the SCOM Linux Data Collector.....\n" > ${path}/scxdatacollector.log
+    echo -e "$(date) Starting the SCOM Linux Data Collector.....\n" > ${path}/scxdatacollector.log
     echo -e "The arguments passed are: \n Path = ${path} \n Maint = ${maint} \n Mon = ${mon} \n"
     echo -e "The arguments passed are: \n Path = ${path} \n Maint = ${maint} \n Mon = ${mon} \n" >> ${path}/scxdatacollector.log
     
