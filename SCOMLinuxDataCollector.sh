@@ -109,6 +109,7 @@ collect_os_details() {
     printf "\nCollecting OS Details.....\n" >> "${path}"/scxdatacollector.log
     collect_host_name
     collect_os_version
+    collect_system_logs sudo
     collect_compute
     collect_disk_space
     collect_network_details
@@ -117,6 +118,7 @@ collect_os_details() {
     collect_crypto_details
     check_kerberos_enabled
     collect_selinux_details
+    collect_env_variable    
 }
 
 collect_host_name() {
@@ -259,6 +261,36 @@ collect_selinux_details(){
     else
         printf "\t\t SELinux is not installed....\n" >> "${path}"/scxdatacollector.log
     fi
+}
+
+collect_env_variable(){
+    printf "\tCollecting env variable for the current user: $(whoami).....\n"
+    printf "\tCollecting env variable for the current user: $(whoami).....\n" >> "${path}"/scxdatacollector.log
+    env >> "${path}"/SCOMLinuxDataCollectorData/configfiles/env
+}
+
+collect_system_logs(){
+    printf "\n\tCollecting system logs. Might take sometime. Hang On....."
+    printf "\tCollecting system logs. Might take sometime. Hang On....." >> "${path}"/scxdatacollector.log
+    #only copying the latest logs from the archive.
+    if [ -f "/var/log/messages" ]; then
+        printf "\n\t\tFile /var/log/messages exists. Copying the file messages" >> "${path}"/scxdatacollector.log
+        $1 cp -f /var/log/messages "${path}"/SCOMLinuxDataCollectorData/logs/messages_copy
+    else
+        printf "\n\t\tFile /var/log/messages doesn't exists. No action needed" >> "${path}"/scxdatacollector.log 
+    fi
+    if [ -f "/var/log/secure" ]; then
+        printf "\n\t\tFile /var/log/secure exists. Copying the file secure" >> "${path}"/scxdatacollector.log
+        $1 cp -f /var/log/secure "${path}"/SCOMLinuxDataCollectorData/logs/secure_copy
+    else
+        printf "\n\t\tFile /var/log/secure doesn't exists. No action needed" >> "${path}"/scxdatacollector.log   
+    fi
+    if [ -f "/var/log/auth" ]; then
+        printf "\n\t\tFile /var/log/auth exists. Copying the file auth" >> "${path}"/scxdatacollector.log
+        $1 cp -f /var/log/auth "${path}"/SCOMLinuxDataCollectorData/logs/auth_copy
+    else
+        printf "\n\t\tFile /var/log/auth doesn't exists. No action needed" >> "${path}"/scxdatacollector.log  
+    fi  
 }
 
 detect_installer(){
@@ -530,7 +562,7 @@ sub_main_root(){
 	fi
     detect_installer
     #This has to be the last function call in the script
-    #archive_logs
+    archive_logs
 }
 
 #this function fetches the less information
