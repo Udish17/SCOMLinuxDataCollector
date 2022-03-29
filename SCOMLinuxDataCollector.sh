@@ -22,8 +22,8 @@ help()
 }
 
 check_distro(){
-    printf "Check distro. The script will proceed only for supported distro.....\n"
-    printf "Check distro. The script will proceed only for supported distro.....\n" >> "${path}"/scxdatacollector.log
+    printf "Checking distro. The script will proceed only for supported distro.....\n"
+    printf "Checking distro. The script will proceed only for supported distro.....\n" >> "${path}"/scxdatacollector.log
     if [ "$(uname)" = 'Linux' ]; then
         printf "\tDistro is Linux. Continuing.....\n"
         printf "\tDistro is Linux. Continuing.....\n" >> "${path}"/scxdatacollector.log
@@ -177,7 +177,7 @@ collect_openssh_details(){
     $1 sshd -T | grep keyalgorithms >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
 	#copy the sshd configuration file
     echo -e "\n******Copying sshd config file******"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-    cp /etc/ssh/sshd_config  "${path}"/SCOMLinuxDataCollectorData/configfiles/sshd_config_copy
+    $1 cp -f /etc/ssh/sshd_config  "${path}"/SCOMLinuxDataCollectorData/configfiles/sshd_config_copy
 }
 
 collect_disk_space(){
@@ -337,12 +337,13 @@ collect_scx_details(){
     collect_omi_pam
     collect_scx_provider_status
     check_omi_core_files
+    check_scx_omi_log_rotation
 }
 
 collect_scx_config_files(){
     printf "\t Copying config files.....\n"
     printf "\t Copying config files.....\n" >> "${path}"/scxdatacollector.log
-    cp -f /etc/opt/omi/conf/omiserver.conf "${path}"/SCOMLinuxDataCollectorData/configfiles/omiserver_copy.conf
+    cp -f /etc/opt/omi/conf/omiserver.conf "${path}"/SCOMLinuxDataCollectorData/configfiles/omiserver.conf_copy
 }
 
 collect_omi_scx_logs(){
@@ -480,6 +481,23 @@ check_omi_core_files(){
 
 }
 
+check_scx_omi_log_rotation(){
+    printf "\t Checking the log rotation configuration for omi and scx.....\n"
+    printf "\t Checking the log rotation configuration for omi and scx......\n" >> "${path}"/scxdatacollector.log
+    if [ -f "/etc/opt/omi/conf/omilogrotate.conf" ]; then
+        printf "\t Found omilogrotate.conf in path /etc/opt/omi/conf. Copying the file.. \n" >> "${path}"/scxdatacollector.log
+        cp -f /etc/opt/omi/conf/omilogrotate.conf  "${path}"/SCOMLinuxDataCollectorData/configfiles/omilogrotate.conf_copy
+    else
+        printf "\t Not found omilogrotate.conf in path /etc/opt/omi/conf...... \n" >> "${path}"/scxdatacollector.log
+    fi
+    if [ -f "/etc/opt/microsoft/scx/conf/logrotate.conf" ]; then
+        printf "\t Found logrotate.conf in path /etc/opt/microsoft/scx/conf. Copying the file.. \n" >> "${path}"/scxdatacollector.log
+        cp -f /etc/opt/microsoft/scx/conf/logrotate.conf  "${path}"/SCOMLinuxDataCollectorData/configfiles/scxlogrotate.conf_copy
+    else
+        printf "\t Not found omilogrotate.conf in path /etc/opt/microsoft/scx/conf. Copying the file.. \n" >> "${path}"/scxdatacollector.log
+    fi 
+}
+
 archive_logs () {
    printf "\nSuccessfully completed the SCOM Linux Data Collector.....\n" >> "${path}"/scxdatacollector.log
    if [ -f "${path}/SCOMLinuxDataCollectorData.tar.gz" ]; then
@@ -512,7 +530,7 @@ sub_main_root(){
 	fi
     detect_installer
     #This has to be the last function call in the script
-    archive_logs
+    #archive_logs
 }
 
 #this function fetches the less information
