@@ -74,13 +74,13 @@ check_dir() {
     printf "Creating the directory structure to store the data from the collector.....\n" >> "${path}"/scxdatacollector.log
 
     if [ -d "${path}/SCOMLinuxDataCollectorData" ]; then
-        printf "\t Path %s/SCOMLinuxDataCollectorData is present. Removing and recreating the directory.....\n" "${path}"
-        printf "\t Path %s/SCOMLinuxDataCollectorData is present. Removing and recreating the directory.....\n" "${path}" >> "${path}"/scxdatacollector.log
+        printf "\tPath %s/SCOMLinuxDataCollectorData is present. Removing and recreating the directory.....\n" "${path}"
+        printf "\tPath %s/SCOMLinuxDataCollectorData is present. Removing and recreating the directory.....\n" "${path}" >> "${path}"/scxdatacollector.log
         rm -rf "${path}"/SCOMLinuxDataCollectorData
         create_dir "${path}/SCOMLinuxDataCollectorData"
     else
-        printf "\t Path ${pwd} is not present in the current working directory. Creating the directory.....\n"
-        printf "\t Path ${pwd} is not present in the current working directory. Creating the directory.....\n" >> "${path}"/scxdatacollector.log
+        printf "\tPath ${pwd} is not present in the current working directory. Creating the directory.....\n"
+        printf "\tPath ${pwd} is not present in the current working directory. Creating the directory.....\n" >> "${path}"/scxdatacollector.log
         create_dir "${path}/SCOMLinuxDataCollectorData"
     fi
 
@@ -91,15 +91,16 @@ check_dir() {
     create_dir "${path}/SCOMLinuxDataCollectorData/pam"
     create_dir "${path}/SCOMLinuxDataCollectorData/scxprovider"
     create_dir "${path}/SCOMLinuxDataCollectorData/configfiles"
+    create_dir "${path}/SCOMLinuxDataCollectorData/tlscheck"
 }
 
 create_dir(){
     if [ -d "$1" ]; then
-        printf "\t Path $1 exists. No action needed......\n"
-        printf "\t Path $1 exists. No action needed......\n" >> "${path}"/scxdatacollector.log
+        printf "\tPath $1 exists. No action needed......\n"
+        printf "\tPath $1 exists. No action needed......\n" >> "${path}"/scxdatacollector.log
     else
-        printf "\t Path $1 does not exists. Proceed with creation.....\n"
-        printf "\t Path $1 does not exists. Proceed with creation.....\n" >> "${path}"/scxdatacollector.log
+        printf "\tPath $1 does not exists. Proceed with creation.....\n"
+        printf "\tPath $1 does not exists. Proceed with creation.....\n" >> "${path}"/scxdatacollector.log
         mkdir -p "$1"
     fi
 }
@@ -323,23 +324,23 @@ check_scx_installed(){
     if [ "$installer" = "rpm" ]; then
         scx=$(rpm -qa scx 2>/dev/null)
         if [ "$scx" ]; then
-            printf "\t SCX package is installed. Collecting SCX details.....\n"
-            printf "\t SCX package is installed. Collecting SCX details.....\n" >> "${path}"/scxdatacollector.log
+            printf "\tSCX package is installed. Collecting SCX details.....\n"
+            printf "\tSCX package is installed. Collecting SCX details.....\n" >> "${path}"/scxdatacollector.log
             #calling function to gather more information about SCX
             collect_scx_details "$2"
         else
-            printf "SCX package is not installed. Not collecting any further details.....\n" >> "${path}"/scxdatacollector.log
+            printf "\tSCX package is not installed. Not collecting any further details.....\n" >> "${path}"/scxdatacollector.log
         fi
     #we will assume if not rpm then dpkg.
     else
         scx=$(dpkg -s scx 2>/dev/null)
         if [ "$scx" ]; then
-            printf "\t SCX package is installed. Collecting SCX details.....\n"
-            printf "\t SCX package is installed. Collecting SCX details.....\n" >> "${path}"/scxdatacollector.log
+            printf "\tSCX package is installed. Collecting SCX details.....\n"
+            printf "\tSCX package is installed. Collecting SCX details.....\n" >> "${path}"/scxdatacollector.log
             #calling function to gather more information about SCX
             collect_scx_details "$2"
         else
-            printf "SCX package is not installed. Not collecting any further details.....\n" >> "${path}"/scxdatacollector.log
+            printf "\tSCX package is not installed. Not collecting any further details.....\n" >> "${path}"/scxdatacollector.log
         fi
     fi
 
@@ -370,6 +371,9 @@ collect_scx_details(){
     #omiserverstatus=`/opt/omi/bin/omiserver`
     #printf "omiserver status:\n $omiserverstatus\n" >> ${path}/scxdatacollector.log
 
+    #*****************************************
+    #*********SCX FUNCTION CALLS**************
+    #*****************************************
     collect_scx_config_files
     collect_omi_scx_logs
     collect_omi_scx_certs
@@ -378,17 +382,18 @@ collect_scx_details(){
     collect_scx_provider_status
     check_omi_core_files
     check_scx_omi_log_rotation
+    test_tls_with_omi
 }
 
 collect_scx_config_files(){
-    printf "\t Copying config files.....\n"
-    printf "\t Copying config files.....\n" >> "${path}"/scxdatacollector.log
+    printf "\tCopying config files.....\n"
+    printf "\tCopying config files.....\n" >> "${path}"/scxdatacollector.log
     cp -f /etc/opt/omi/conf/omiserver.conf "${path}"/SCOMLinuxDataCollectorData/configfiles/omiserver.conf_copy
 }
 
 collect_omi_scx_logs(){
-    printf "\t Collecting details of OMI and SCX logs.....\n"
-    printf "\t Collecting details of OMI and SCX logs.....\n" >> "${path}"/scxdatacollector.log
+    printf "\tCollecting details of OMI and SCX logs.....\n"
+    printf "\tCollecting details of OMI and SCX logs.....\n" >> "${path}"/scxdatacollector.log
     omilogsetting=$(cat /etc/opt/omi/conf/omiserver.conf | grep -i loglevel)
     printf "*****OMI LOG SETTINGS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
     printf "$omilogsetting \n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
@@ -396,40 +401,40 @@ collect_omi_scx_logs(){
     printf "*****SCX LOG SETTINGS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
     printf "$scxlogsetting \n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
 
-    printf "\t Copying OMI and SCX logs.....\n"
-    printf "\t Copying OMI and SCX logs.....\n" >> "${path}"/scxdatacollector.log
+    printf "\tCopying OMI and SCX logs. Might take sometime. Hang On....\n"
+    printf "\tCopying OMI and SCX logs. Might take sometime. Hang On....\n" >> "${path}"/scxdatacollector.log
     count1=$(ls -1 /var/opt/omi/log/*.log  2>/dev/null | wc -l)
     if [ "${count1}" != 0 ]; then
-      printf "\t\t Found .log files in path /var/opt/omi/log. Copying the logs.. \n" >> "${path}"/scxdatacollector.log
+      printf "\t\tFound .log files in path /var/opt/omi/log. Copying the logs.. \n" >> "${path}"/scxdatacollector.log
       cp -f /var/opt/omi/log/*.log "${path}"/SCOMLinuxDataCollectorData/logs
     else
-      printf "\t\t No .log files found in path /var/opt/omi/log. No action needed....\n" >> "${path}"/scxdatacollector.log
+      printf "\t\tNo .log files found in path /var/opt/omi/log. No action needed....\n" >> "${path}"/scxdatacollector.log
     fi
 
     count2=$(ls -1 /var/opt/omi/log/*.trc  2>/dev/null | wc -l)
     if [ "${count2}" != 0 ]; then
-        printf "\t\t Found .trc files in path /var/opt/omi/log. Copying the logs.. \n" >> "${path}"/scxdatacollector.log
+        printf "\t\tFound .trc files in path /var/opt/omi/log. Copying the logs.. \n" >> "${path}"/scxdatacollector.log
         cp -f /var/opt/omi/log/*.trc "${path}"/SCOMLinuxDataCollectorData/logs
     else
-        printf "\t\t No .trc files found in path /var/opt/omi/log. No action needed.... \n" >> "${path}"/scxdatacollector.log
+        printf "\t\tNo .trc files found in path /var/opt/omi/log. No action needed.... \n" >> "${path}"/scxdatacollector.log
     fi
 
     count3=$(ls -1 /var/opt/microsoft/scx/log/*.log  2>/dev/null | wc -l)
     if [ "${count3}" != 0 ]; then
-        printf "\t\t Found .log files in path /var/opt/microsoft/scx/log/*.log. Copying the logs.. \n" >> "${path}"/scxdatacollector.log
+        printf "\t\tFound .log files in path /var/opt/microsoft/scx/log/*.log. Copying the logs.. \n" >> "${path}"/scxdatacollector.log
         cp -f /var/opt/microsoft/scx/log/*.log "${path}"/SCOMLinuxDataCollectorData/logs
     else
-        printf "\t\t No .log files found in path /var/opt/microsoft/scx/log/*.log. No action needed.... \n" >> "${path}"/scxdatacollector.log
+        printf "\t\tNo .log files found in path /var/opt/microsoft/scx/log/*.log. No action needed.... \n" >> "${path}"/scxdatacollector.log
     fi
 }
 
 collect_omi_scx_certs(){
-    printf "\t Collecting SCX cert details.....\n"
-    printf "\t Collecting SCX cert details.....\n" >> "${path}"/scxdatacollector.log
+    printf "\tCollecting SCX cert details.....\n"
+    printf "\tCollecting SCX cert details.....\n" >> "${path}"/scxdatacollector.log
 
     #checking omi certs
     if [ -d "/etc/opt/omi/ssl/" ]; then
-      printf "\t \t Path /etc/opt/omi/ssl exists. Dumping details.....\n" >> "${path}"/scxdatacollector.log
+      printf "\t \tPath /etc/opt/omi/ssl exists. Dumping details.....\n" >> "${path}"/scxdatacollector.log
       #dumping the list of files as the soft links can be broken at times of the permissions might be messed
       printf "\n******OMI CERTS STRUCTURE******\n" >> "${path}"/SCOMLinuxDataCollectorData/certs/certlist.txt
       ls -l /etc/opt/omi/ssl/ >> "${path}"/SCOMLinuxDataCollectorData/certs/certlist.txt
@@ -439,17 +444,17 @@ collect_omi_scx_certs(){
 
       #checking the omi.pem
         if [ -f "${omipubliccertsoftlink}" ]; then
-            printf "\t \t omi public cert exists.....\n" >> "${path}"/scxdatacollector.log
+            printf "\t\tomi public cert exists.....\n" >> "${path}"/scxdatacollector.log
         else
-            printf "\t \t omi public cert does not exists.....\n" >> "${path}"/scxdatacollector.log
+            printf "\t\tomi public cert does not exists.....\n" >> "${path}"/scxdatacollector.log
         fi
     else
-      printf "\t \t Path /etc/opt/omi/ssl does not exists.....\n" >> "${path}"/scxdatacollector.log
+      printf "\t\tPath /etc/opt/omi/ssl does not exists.....\n" >> "${path}"/scxdatacollector.log
     fi
 
     #checking scx certs
     if [ -d "/etc/opt/microsoft/scx/ssl/" ]; then
-        printf "\t \t Path /etc/opt/microsoft/scx/ssl/ exists. Dumping details.....\n" >> "${path}"/scxdatacollector.log
+        printf "\t\tPath /etc/opt/microsoft/scx/ssl/ exists. Dumping details.....\n" >> "${path}"/scxdatacollector.log
         printf "\n******SCX CERT STRUCTURE******\n" >> "${path}"/SCOMLinuxDataCollectorData/certs/certlist.txt
         ls -l /etc/opt/microsoft/scx/ssl/ >> "${path}"/SCOMLinuxDataCollectorData/certs/certlist.txt
 
@@ -457,20 +462,20 @@ collect_omi_scx_certs(){
         #checking the scx.pem
         #dumping scx.pem as SCOM uses it.
         if [ -f "${scxpubliccertsoftlink}" ]; then
-            printf "\t \t scx public cert exists..Dumping details.....\n" >> "${path}"/scxdatacollector.log
+            printf "\t\tscx public cert exists..Dumping details.....\n" >> "${path}"/scxdatacollector.log
             openssl x509 -in /etc/opt/microsoft/scx/ssl/scx.pem -text > "${path}"/SCOMLinuxDataCollectorData/certs/certdetails_long.txt
             openssl x509 -noout -in /etc/opt/microsoft/scx/ssl/scx.pem  -subject -issuer -dates > "${path}"/SCOMLinuxDataCollectorData/certs/certdetails_short.txt
         else
-            printf "\t \t scx public cert does not exists.....\n" >> "${path}"/scxdatacollector.log
+            printf "\t\tscx public cert does not exists.....\n" >> "${path}"/scxdatacollector.log
         fi
     else
-        printf "\t \t Path Path /etc/opt/microsoft/scx/ssl/ does not exists.....\n" >> "${path}"/scxdatacollector.log
+        printf "\t\tPath /etc/opt/microsoft/scx/ssl/ does not exists.....\n" >> "${path}"/scxdatacollector.log
     fi
 }
 
 collect_scx_directories_structure(){
-    printf "\t Collecting SCX DirectoryStructure.....\n"
-    printf "\t Collecting SCX DirectoryStructure.....\n" >> "${path}"/scxdatacollector.log
+    printf "\tCollecting SCX DirectoryStructure.....\n"
+    printf "\tCollecting SCX DirectoryStructure.....\n" >> "${path}"/scxdatacollector.log
     $1 ls -lR /var/opt/microsoft/ >> "${path}"/SCOMLinuxDataCollectorData/scxdirectorystructure/var-opt-microsoft
     $1 ls -lR /var/opt/omi >> "${path}"/SCOMLinuxDataCollectorData/scxdirectorystructure/var-opt-omi
     $1 ls -lR /opt/omi/ >> "${path}"/SCOMLinuxDataCollectorData/scxdirectorystructure/opt-omi
@@ -479,63 +484,70 @@ collect_scx_directories_structure(){
 }
 
 collect_omi_pam(){
-    printf "\t Collecting omi PAM details.....\n"
-    printf "\t Collecting omi PAM details.....\n" >> "${path}"/scxdatacollector.log
+    printf "\tCollecting omi PAM details.....\n"
+    printf "\tCollecting omi PAM details.....\n" >> "${path}"/scxdatacollector.log
     if [ -f /etc/opt/omi/conf/pam.conf ]; then
         # PAM configuration file found; use that
-        cp /etc/opt/omi/conf/pam.conf "${path}"/SCOMLinuxDataCollectorData/pam/pam.conf
+        cp -f /etc/opt/omi/conf/pam.conf "${path}"/SCOMLinuxDataCollectorData/pam/pam.conf
     elif [ -f /etc/pam.d/omi ]; then
-        cp /etc/pam.d/omi "${path}"/SCOMLinuxDataCollectorData/pam/omi
+        cp -f /etc/pam.d/omi "${path}"/SCOMLinuxDataCollectorData/pam/omi
     fi
 }
 
 collect_scx_provider_status(){
-   printf "\t Collecting SCX Provider Details.....\n"
-   printf "\t Collecting SCX Provider Detail.....\n" >> "${path}"/scxdatacollector.log
+   printf "\tCollecting SCX Provider Details.....\n"
+   printf "\tCollecting SCX Provider Detail.....\n" >> "${path}"/scxdatacollector.log
    if [ -d "/etc/opt/omi/conf/omiregister" ]; then
-      printf "\t\t omiregister directory found. Collecting more details.....\n" >> "${path}"/scxdatacollector.log
+      printf "\t\tomiregister directory found. Collecting more details.....\n" >> "${path}"/scxdatacollector.log
       cp /etc/opt/omi/conf/omiregister/root-scx/* "${path}"/SCOMLinuxDataCollectorData/scxprovider
    else
-      printf "\t\t omiregister directory not found......\n" >> "${path}"/scxdatacollector.log
+      printf "\t\tomiregister directory not found......\n" >> "${path}"/scxdatacollector.log
    fi
 
-   printf "\t\t Query the omi cli and dumping details for one class from each identity (root, req, omi).....\n" >> "${path}"/scxdatacollector.log
-   #We cam think of dumping all the class information if required.
-   #However, we need to keep in mind if the provider is hung then we can to kill the query after sometime. That logic has to be built later.
+   printf "\t\tQuery the omi cli and dumping details for one class from each identity (root, req, omi).....\n" >> "${path}"/scxdatacollector.log
+   #We can think of dumping all the classes information if required.
+   #However, we need to keep in mind if the provider is hung then we have to kill the query after sometime. That logic has to be built later.
    /opt/omi/bin/omicli ei root/scx SCX_UnixProcess >> "${path}"/SCOMLinuxDataCollectorData/scxprovider/scxproviderstatus
    /opt/omi/bin/omicli ei root/scx SCX_Agent >> "${path}"/SCOMLinuxDataCollectorData/scxprovider/scxproviderstatus
    /opt/omi/bin/omicli ei root/scx SCX_OperatingSystem >> "${path}"/SCOMLinuxDataCollectorData/scxprovider/scxproviderstatus
 }
 
 check_omi_core_files(){
-   printf "\t Check for core files in SCX directory /var/opt/omi/run/.....\n"
-   printf "\t Check for core files in SCX directory /var/opt/omi/run/......\n" >> "${path}"/scxdatacollector.log
+   printf "\tCheck for core files in SCX directory /var/opt/omi/run/.....\n"
+   printf "\tCheck for core files in SCX directory /var/opt/omi/run/......\n" >> "${path}"/scxdatacollector.log
 
    corefilescount=$(ls -1 /var/opt/omi/run/core* 2>/dev/null | wc -l)
     if [ "${corefilescount}" != 0 ]; then
-      printf "\t\t Found core files in path /var/opt/omi/run/. Copying the core files.. \n" >> "${path}"/scxdatacollector.log
+      printf "\t\tFound core files in path /var/opt/omi/run/. Copying the core files.. \n" >> "${path}"/scxdatacollector.log
       cp -f /var/opt/omi/run/core* "${path}"/SCOMLinuxDataCollectorData/logs
     else
-      printf "\t\t No core files found in path /var/opt/omi/run/. No action needed....\n" >> "${path}"/scxdatacollector.log
+      printf "\t\tNo core files found in path /var/opt/omi/run/. No action needed....\n" >> "${path}"/scxdatacollector.log
     fi
-
 }
 
 check_scx_omi_log_rotation(){
-    printf "\t Checking the log rotation configuration for omi and scx.....\n"
-    printf "\t Checking the log rotation configuration for omi and scx......\n" >> "${path}"/scxdatacollector.log
+    printf "\tChecking the log rotation configuration for omi and scx.....\n"
+    printf "\tChecking the log rotation configuration for omi and scx......\n" >> "${path}"/scxdatacollector.log
     if [ -f "/etc/opt/omi/conf/omilogrotate.conf" ]; then
-        printf "\t Found omilogrotate.conf in path /etc/opt/omi/conf. Copying the file.. \n" >> "${path}"/scxdatacollector.log
+        printf "\tFound omilogrotate.conf in path /etc/opt/omi/conf. Copying the file.. \n" >> "${path}"/scxdatacollector.log
         cp -f /etc/opt/omi/conf/omilogrotate.conf  "${path}"/SCOMLinuxDataCollectorData/configfiles/omilogrotate.conf_copy
     else
-        printf "\t Not found omilogrotate.conf in path /etc/opt/omi/conf...... \n" >> "${path}"/scxdatacollector.log
+        printf "\tNot found omilogrotate.conf in path /etc/opt/omi/conf...... \n" >> "${path}"/scxdatacollector.log
     fi
     if [ -f "/etc/opt/microsoft/scx/conf/logrotate.conf" ]; then
-        printf "\t Found logrotate.conf in path /etc/opt/microsoft/scx/conf. Copying the file.. \n" >> "${path}"/scxdatacollector.log
+        printf "\tFound logrotate.conf in path /etc/opt/microsoft/scx/conf. Copying the file.. \n" >> "${path}"/scxdatacollector.log
         cp -f /etc/opt/microsoft/scx/conf/logrotate.conf  "${path}"/SCOMLinuxDataCollectorData/configfiles/scxlogrotate.conf_copy
     else
-        printf "\t Not found omilogrotate.conf in path /etc/opt/microsoft/scx/conf. Copying the file.. \n" >> "${path}"/scxdatacollector.log
+        printf "\tNot found omilogrotate.conf in path /etc/opt/microsoft/scx/conf. Copying the file.. \n" >> "${path}"/scxdatacollector.log
     fi 
+}
+
+test_tls_with_omi(){
+    printf "\tTesting TLS 1.0, 1.1 and 1.2 on port 1270 locally. Might take sometime. Hang On.........\n"
+    printf "\tTesting TLS 1.0, 1.1 and 1.2 on port 1270 locally. Might take sometime. Hang On..........\n" >> "${path}"/scxdatacollector.log
+    openssl s_client -connect localhost:1270 -tls1 < /dev/null > "${path}"/SCOMLinuxDataCollectorData/tlscheck/tls1 2> /dev/null
+    openssl s_client -connect localhost:1270 -tls1_1 < /dev/null > "${path}"/SCOMLinuxDataCollectorData/tlscheck/tls1.1 2> /dev/null
+    openssl s_client -connect localhost:1270 -tls1_2 < /dev/null > "${path}"/SCOMLinuxDataCollectorData/tlscheck/tls1.2 2> /dev/null
 }
 
 archive_logs () {
@@ -591,8 +603,7 @@ main(){
     printf "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
     #clearing the scxdatacollector.log file to start with
     #using sudo out-of-box even if the user is root to avoid permission denied on the intial log file creation.
-    sudo printf "" > "${path}"/scxdatacollector.log
-    
+    sudo printf "" > "${path}"/scxdatacollector.log    
 
     if [ ! -n "${path}"  ]; then
         printf "Log Collection Path is NULL. Setting Path to current working directory......\n"
@@ -614,10 +625,10 @@ main(){
     printf "Script is running under user: ${user}.....\n"
     printf "Script is running under user: ${user}.....\n" >> "${path}"/scxdatacollector.log
     if [ "$user"=='root' ]; then
-         printf "\t User is root. Collecting maximum information.....\n"
+         printf "\tUser is root. Collecting maximum information.....\n"
          sub_main_root "$path" "$maint" "$mon"
     else
-         printf "\t User is non root. Collecting information based on the level of privilege.....\n"
+         printf "\tUser is non root. Collecting information based on the level of privilege.....\n"
          sub_main_non_root "$path" "$maint" "$mon"
     fi
 }
