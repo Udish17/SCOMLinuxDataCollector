@@ -70,8 +70,8 @@ check_dir() {
     pwd=$(pwd)
     printf "Logs will be created in the output directory i.e. %s .....\n" "${path}"
     printf "Logs will be created in the output directory i.e. %s .....\n" "${path}" >> "${path}"/scxdatacollector.log
-    printf "Creating the directory strucuture to store the data from the collector.....\n"
-    printf "Creating the directory strucuture to store the data from the collector.....\n" >> "${path}"/scxdatacollector.log
+    printf "Creating the directory structure to store the data from the collector.....\n"
+    printf "Creating the directory structure to store the data from the collector.....\n" >> "${path}"/scxdatacollector.log
 
     if [ -d "${path}/SCOMLinuxDataCollectorData" ]; then
         printf "\t Path %s/SCOMLinuxDataCollectorData is present. Removing and recreating the directory.....\n" "${path}"
@@ -118,7 +118,8 @@ collect_os_details() {
     collect_crypto_details
     check_kerberos_enabled
     collect_selinux_details
-    collect_env_variable    
+    collect_env_variable
+    collect_other_config_files sudo   
 }
 
 collect_host_name() {
@@ -291,6 +292,13 @@ collect_system_logs(){
     else
         printf "\n\t\tFile /var/log/auth doesn't exists. No action needed" >> "${path}"/scxdatacollector.log  
     fi  
+}
+
+collect_other_config_files(){
+    printf "\tCollecting other config files.....\n"
+    printf "\tCollecting /etc/resolv.conf and /etc/hosts config files......\n" >> "${path}"/scxdatacollector.log
+    $1 cp -f /etc/resolv.conf "${path}"/SCOMLinuxDataCollectorData/configfiles/resolv.conf_copy
+    $1 cp -f /etc/hosts "${path}"/SCOMLinuxDataCollectorData/configfiles/hosts_copy
 }
 
 detect_installer(){
