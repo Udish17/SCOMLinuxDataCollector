@@ -7,9 +7,9 @@ The tool is Read-Only and does not change the state of the executed machine.
 **Usage:  [OPTIONS]**
 
  Options:\
-  -o &emsp; `:outputpath &emsp; Specify the location of data collection. If not specified, it will collect the data in the current working directory.`\
-  -m &emsp; `:scxmaintenanceaccount &emsp;Specify the SCX Maintenance Account. This will be used to check the sudo privilege for the account.`\
-  -n &emsp; `:scxmonitoringaccount &emsp;Specify the SCX Monitoring Account. This will be used to check the sudo privilege for the account.`
+  -o &emsp; `:outputpath` &emsp; `Specify the location of collection. If not specified, it will collect the data in the current working directory.`\
+  -m &emsp; `:scxmaintenanceaccount` &emsp;`Specify the SCX Maintenance Account. This will be used to check the sudo privilege for the account.`\
+  -n &emsp; `:scxmonitoringaccount` &emsp;`Specify the SCX Monitoring Account. This will be used to check the sudo privilege for the account.`
 
 **Example**
 
