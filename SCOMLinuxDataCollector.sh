@@ -8,7 +8,9 @@
 #Feedback :
 #   Email udmudiar@microsoft.com
 #   Or the engineer you are working with
-
+#How the data is transfered to Microsoft. We do secure transfer.
+#https://docs.microsoft.com/en-US/troubleshoot/azure/general/secure-file-exchange-transfer-files
+#
 
 help()
 {
@@ -495,8 +497,8 @@ collect_omi_pam(){
 }
 
 collect_scx_provider_status(){
-   printf "\tCollecting SCX Provider Details.....\n"
-   printf "\tCollecting SCX Provider Detail.....\n" >> "${path}"/scxdatacollector.log
+   printf "\tCollecting SCX Provider Details. **If this step is hung, press Ctrl+C to forcefully exit....\n"
+   printf "\tCollecting SCX Provider Details.....\n" >> "${path}"/scxdatacollector.log
    if [ -d "/etc/opt/omi/conf/omiregister" ]; then
       printf "\t\tomiregister directory found. Collecting more details.....\n" >> "${path}"/scxdatacollector.log
       cp /etc/opt/omi/conf/omiregister/root-scx/* "${path}"/SCOMLinuxDataCollectorData/scxprovider
@@ -556,14 +558,14 @@ archive_logs () {
       printf "\nFile SCOMLinuxDataCollectorData.tar.gz already exist. Cleaning up before new archive.....\n"
       printf "\nFile SCOMLinuxDataCollectorData.tar.gz already exist. Cleaning up before new archive.....\n"  >> "${path}"/scxdatacollector.log
       rm -rf "${path}"/SCOMLinuxDataCollectorData.tar.gz
-
    fi
+
    printf "Moving the scxdatacollector.log file to SCOMLinuxDataCollectorData.\n"
-   printf "Moving the scxdatacollector.log file to SCOMLinuxDataCollectorData. Archiving and zipping SCOMLinuxDataCollectorData. Clean up other data....\n" >> "${path}"/scxdatacollector.log
+   printf "Moving the scxdatacollector.log file to SCOMLinuxDataCollectorData. Archiving and zipping SCOMLinuxDataCollectorData. Cleaning up other data....\n" >> "${path}"/scxdatacollector.log
    echo -e "\n $(date) Successfully completed the SCOM Linux Data Collector steps. Few steps remaining....\n" >> "${path}"/scxdatacollector.log
    mv "${path}"/scxdatacollector.log "${path}"/SCOMLinuxDataCollectorData
-   printf "Archiving and zipping SCOMLinuxDataCollectorData.\n"
-   tar -cf "${path}"/SCOMLinuxDataCollectorData.tar "${path}"/SCOMLinuxDataCollectorData
+   printf "Archiving and zipping SCOMLinuxDataCollectorData. Might take sometime. Hang On.....\n"
+   tar -cf "${path}"/SCOMLinuxDataCollectorData.tar "${path}"/SCOMLinuxDataCollectorData 2> /dev/null
 
    gzip "${path}"/SCOMLinuxDataCollectorData.tar
    printf "Clean up other data....\n"
