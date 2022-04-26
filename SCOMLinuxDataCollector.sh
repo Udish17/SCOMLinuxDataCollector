@@ -554,10 +554,11 @@ test_tls_with_omi(){
 
 archive_logs () {
    printf "\nSuccessfully completed the SCOM Linux Data Collector.....\n" >> "${path}"/scxdatacollector.log
-   if [ -f "${path}/SCOMLinuxDataCollectorData.tar.gz" ]; then
-      printf "\nFile SCOMLinuxDataCollectorData.tar.gz already exist. Cleaning up before new archive.....\n"
-      printf "\nFile SCOMLinuxDataCollectorData.tar.gz already exist. Cleaning up before new archive.....\n"  >> "${path}"/scxdatacollector.log
-      rm -rf "${path}"/SCOMLinuxDataCollectorData.tar.gz
+   count=$(ls ${path}/SCOMLinuxDataCollectorData*.tar.gz 2>/dev/null | wc -l)
+   if [ $count -ne 0 ]; then   
+      printf "\nFile SCOMLinuxDataCollectorData*.tar.gz already exist. Cleaning up before new archive.....\n"
+      printf "\nFile SCOMLinuxDataCollectorData*.tar.gz already exist. Cleaning up before new archive.....\n"  >> "${path}"/scxdatacollector.log
+      rm -rf "${path}"/SCOMLinuxDataCollectorData*.tar.gz
    fi
 
    printf "Moving the scxdatacollector.log file to SCOMLinuxDataCollectorData.\n"
