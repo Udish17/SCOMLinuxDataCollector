@@ -577,12 +577,20 @@ archive_logs () {
 #this function fetches the maximum information
 sub_main_root(){
     check_dir "$path"
-    collect_os_details
-	if [ ! -n "$maint" ] || [ ! -n "$mon" ]; then
-		check_sudo_permission "$maint" "$mon"
+    collect_os_details    
+	if [ -n "$maint" ] || [ -n "$mon" ]; then
+        if [ -n "$maint" ] && [ -n "$mon" ]; then
+             check_sudo_permission "$maint" "$mon"
+        elif [ -z "$mon" ]; then
+             check_sudo_permission "$maint" 
+        elif [ -z "$maint" ]; then
+             check_sudo_permission "$mon" 
+        fi       
 	else
-		check_sudo_permission "$(whoami)"
+		printf "Checking the sudo permissions\n"
+        printf "\tNo accounts passed as argument. Not checking sudo permissions....."
 	fi
+    #this call will also check the scx components
     detect_installer
     #This has to be the last function call in the script
     archive_logs
@@ -592,11 +600,19 @@ sub_main_root(){
 sub_main_non_root(){
     check_dir "$path"
     collect_os_details
-	if [ ! -n "$maint" ] || [ ! -n "$mon" ]; then
-		check_sudo_permission "$maint" "$mon"
+	if [ -n "$maint" ] || [ -n "$mon" ]; then
+        if [ -n "$maint" ] && [ -n "$mon" ]; then
+             check_sudo_permission "$maint" "$mon"
+        elif [ -z "$mon" ]; then
+             check_sudo_permission "$maint" 
+        elif [ -z "$maint" ]; then
+             check_sudo_permission "$mon" 
+        fi       
 	else
-		check_sudo_permission "$(whoami)"
+		printf "Checking the sudo permissions\n"
+        printf "\tNo accounts passed as argument. Not checking sudo permissions....."
 	fi
+    #this call will also check the scx components
     detect_installer sudo
     #This has to be the last function call in the script
     archive_logs
