@@ -128,22 +128,22 @@ collect_os_details() {
 collect_host_name() {
     printf "\tCollecting HostName Details.....\n"
     printf "\tCollecting Hostname Details.....\n" >> "${path}"/scxdatacollector.log
-    printf "\n******HOSTNAME******"  > "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    printf "\n******HOSTNAME******\n"  > "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     hostname >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     #below is what SCOM check while creating the self-signed certificate as CN
-    printf "\n******HOSTNAME FOR CERTS******"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    printf "\n******HOSTNAME FOR CERTS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     nslookuphostname=$(nslookup "$(hostname)" | grep '^Name:' | awk '{print $2}' | grep "$(hostname)")
     if [ "${nslookuphostname}" ]; then
         printf "${nslookuphostname}" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     else
-        printf "Unable to resolve hostname from nslookup....." >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "Unable to resolve hostname from nslookup." >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     fi
 }
 
 collect_os_version(){
     printf "\tCollecting OS Details.....\n"
     printf "\tCollecting OS Details.....\n" >> "${path}"/scxdatacollector.log
-    printf "\n******OS VERSION******"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    printf "\n\n******OS VERSION******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
 	releasedata=$(cat /etc/*release)
 	releaseversion=$(printf "$releasedata" | grep -Po '(?<=PRETTY_NAME=")[^"]*')
 	printf "\t  Detected: ${releaseversion}"
@@ -153,18 +153,18 @@ collect_os_version(){
 collect_compute(){
     printf "\n\tCollecting Memory and CPU for omi processes.....\n"
     printf "\tCollecting Memory and CPU for omi processes.....\n" >> "${path}"/scxdatacollector.log
-    printf "\n******MEM AND CPU FOR OMISERVER PROCESS******"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    printf "\n\n******MEM AND CPU FOR OMISERVER PROCESS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     ps -C omiserver -o %cpu,%mem,cmd >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-    printf "\n******MEM AND CPU FOR OMIENGINE PROCESS******"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    printf "\n******MEM AND CPU FOR OMIENGINE PROCESS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     ps -C omiengine -o %cpu,%mem,cmd >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-    printf "\n******MEM AND CPU FOR OMIAGENT PROCESSES******"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    printf "\n******MEM AND CPU FOR OMIAGENT PROCESSES******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     ps -C omiagent -o %cpu,%mem,cmd >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
 }
 
 collect_openssl_details() {
     printf "\tCollecting Openssl & Openssh Details.....\n"
     printf "\tCollecting Openssl & Openssh Details.....\n" >> "${path}"/scxdatacollector.log
-    printf "\n******OPENSSL & OPENSSH VERSION******"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    printf "\n******OPENSSL & OPENSSH VERSION******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     ssh -V  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt  2>&1
 }
 
@@ -172,24 +172,24 @@ collect_openssh_details(){
     printf "\tCollecting SSH Details.....\n"
     printf "\tCollecting SSH Details.....\n" >> "${path}"/scxdatacollector.log
     #checking Kex settings in sshd. We are interested in the sshd server settings.
-    printf "\n******SSH DETAILS******"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-    printf "\n******KEY EXCHANGE ALGORITHIM (KEX) DETAILS******"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    printf "\n******SSH DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    printf "\n******KEY EXCHANGE ALGORITHIM (KEX) DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     $1 sshd -T | grep -E ^kexalgorithms >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-    printf "\n******CIPHERS DETAILS******"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    printf "\n******CIPHERS DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     $1 sshd -T | grep ciphers>> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-    printf "\n******MACS DETAILS******"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    printf "\n******MACS DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     $1 sshd -T | grep macs >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-    printf "\n******HOST KEY ALGORITHIMS DETAILS******"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    printf "\n******HOST KEY ALGORITHIMS DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     $1 sshd -T | grep keyalgorithms >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
 	#copy the sshd configuration file
-    echo -e "\n******Copying sshd config file******"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-    $1 cp -f /etc/ssh/sshd_config  "${path}"/SCOMLinuxDataCollectorData/configfiles/sshd_config_copy
+    echo -e "\n******Copying sshd config file******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    $1 cp -f /etc/ssh/sshd_config  "${path}"/SCOMLinuxDataCollectorData/configfiles/sshd_config_copy.txt
 }
 
 collect_disk_space(){
     printf "\tCollecting the file system usage.....\n"
     printf "\tCollecting the file system usage.....\n" >> "${path}"/scxdatacollector.log
-    printf "\n******FILE SYSTEM DETAILS******"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    printf "\n******FILE SYSTEM DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     df -h >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
 }
 
@@ -215,12 +215,12 @@ check_kerberos_enabled(){
 collect_network_details(){
     printf "\tCollecting the network details.....\n"
     printf "\tCollecting the network details.....\n" >> "${path}"/scxdatacollector.log
-    printf "\n******IP ADDRESS DETAILS******"  >> "${path}"/SCOMLinuxDataCollectorData/network/ipdetails
-    ip addr show >> "${path}"/SCOMLinuxDataCollectorData/network/ipdetails
-    printf "\n******NETSTAT DETAILS******"  >> "${path}"/SCOMLinuxDataCollectorData/network/ipdetails
+    printf "\n******IP ADDRESS DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/network/ipdetails.txt
+    ip addr show >> "${path}"/SCOMLinuxDataCollectorData/network/ipdetails.txt
+    printf "\n******NETSTAT DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/network/ipdetails.txt
     #netstat is a deprecated utility.
     #netstat -anp >> ${path}/SCOMLinuxDataCollectorData/network/netstatdetails
-    ss >> "${path}"/SCOMLinuxDataCollectorData/network/netstatdetails
+    ss >> "${path}"/SCOMLinuxDataCollectorData/network/netstatdetails.txt
 }
 
 check_sudo_permission(){
@@ -230,16 +230,16 @@ check_sudo_permission(){
         printf "Checking the sudo permissions for the account ${account_1}...\n"
         printf "Checking the sudo permissions for the account ${account_1}.....\n" >> "${path}"/scxdatacollector.log
         create_dir "${path}/SCOMLinuxDataCollectorData/sudo"
-        printf "******SUDO DETAILS FOR ${account_1}*****\n" > "${path}"/SCOMLinuxDataCollectorData/sudo/"${account_1}"
-        sudo -l -U "${account_1}" >> "${path}"/SCOMLinuxDataCollectorData/sudo/"${account_1}"
+        printf "******SUDO DETAILS FOR ${account_1}*****\n" > "${path}"/SCOMLinuxDataCollectorData/sudo/"${account_1}.txt"
+        sudo -l -U "${account_1}" >> "${path}"/SCOMLinuxDataCollectorData/sudo/"${account_1}.txt"
    elif (( $# == 2 )); then
         printf "Checking the sudo permissions for the account ${account_1} and ${account_2}...\n"
         printf "Checking the sudo permissions for the account ${account_1} and ${account_2}...\n" >> "${path}"/scxdatacollector.log
         create_dir "${path}/SCOMLinuxDataCollectorData/sudo"
-        printf "******SUDO DETAILS FOR %s*****\n" "${account_1}" > "${path}"/SCOMLinuxDataCollectorData/sudo/"${account_1}"
-        sudo -l -U "${account_1}" >> "${path}"/SCOMLinuxDataCollectorData/sudo/"${account_1}"
-        printf "******SUDO DETAILS FOR %s*****\n" "${account_2}" > "${path}"/SCOMLinuxDataCollectorData/sudo/"${account_2}"
-        sudo -l -U "${account_2}" >> "${path}"/SCOMLinuxDataCollectorData/sudo/"${account_2}"
+        printf "******SUDO DETAILS FOR %s*****\n" "${account_1}" > "${path}"/SCOMLinuxDataCollectorData/sudo/"${account_1}.txt"
+        sudo -l -U "${account_1}" >> "${path}"/SCOMLinuxDataCollectorData/sudo/"${account_1}.txt"
+        printf "******SUDO DETAILS FOR %s*****\n" "${account_2}" > "${path}"/SCOMLinuxDataCollectorData/sudo/"${account_2}.txt"
+        sudo -l -U "${account_2}" >> "${path}"/SCOMLinuxDataCollectorData/sudo/"${account_2}.txt"
    fi
 }
 
@@ -270,7 +270,7 @@ collect_selinux_details(){
 collect_env_variable(){
     printf "\tCollecting env variable for the current user: $(whoami).....\n"
     printf "\tCollecting env variable for the current user: $(whoami).....\n" >> "${path}"/scxdatacollector.log
-    env >> "${path}"/SCOMLinuxDataCollectorData/configfiles/env
+    env >> "${path}"/SCOMLinuxDataCollectorData/configfiles/env.txt
 }
 
 collect_system_logs(){
@@ -279,19 +279,19 @@ collect_system_logs(){
     #only copying the latest logs from the archive.
     if [ -f "/var/log/messages" ]; then
         printf "\n\t\tFile /var/log/messages exists. Copying the file messages" >> "${path}"/scxdatacollector.log
-        $1 cp -f /var/log/messages "${path}"/SCOMLinuxDataCollectorData/logs/messages_copy
+        $1 cp -f /var/log/messages "${path}"/SCOMLinuxDataCollectorData/logs/messages_copy.txt
     else
         printf "\n\t\tFile /var/log/messages doesn't exists. No action needed" >> "${path}"/scxdatacollector.log 
     fi
     if [ -f "/var/log/secure" ]; then
         printf "\n\t\tFile /var/log/secure exists. Copying the file secure" >> "${path}"/scxdatacollector.log
-        $1 cp -f /var/log/secure "${path}"/SCOMLinuxDataCollectorData/logs/secure_copy
+        $1 cp -f /var/log/secure "${path}"/SCOMLinuxDataCollectorData/logs/secure_copy.txt
     else
         printf "\n\t\tFile /var/log/secure doesn't exists. No action needed" >> "${path}"/scxdatacollector.log   
     fi
     if [ -f "/var/log/auth" ]; then
         printf "\n\t\tFile /var/log/auth exists. Copying the file auth" >> "${path}"/scxdatacollector.log
-        $1 cp -f /var/log/auth "${path}"/SCOMLinuxDataCollectorData/logs/auth_copy
+        $1 cp -f /var/log/auth "${path}"/SCOMLinuxDataCollectorData/logs/auth_copy.txt
     else
         printf "\n\t\tFile /var/log/auth doesn't exists. No action needed" >> "${path}"/scxdatacollector.log  
     fi  
@@ -300,8 +300,8 @@ collect_system_logs(){
 collect_other_config_files(){
     printf "\tCollecting other config files.....\n"
     printf "\tCollecting /etc/resolv.conf and /etc/hosts config files......\n" >> "${path}"/scxdatacollector.log
-    $1 cp -f /etc/resolv.conf "${path}"/SCOMLinuxDataCollectorData/configfiles/resolv.conf_copy
-    $1 cp -f /etc/hosts "${path}"/SCOMLinuxDataCollectorData/configfiles/hosts_copy
+    $1 cp -f /etc/resolv.conf "${path}"/SCOMLinuxDataCollectorData/configfiles/resolvconf_copy.txt
+    $1 cp -f /etc/hosts "${path}"/SCOMLinuxDataCollectorData/configfiles/hosts_copy.txt
 }
 
 detect_installer(){
@@ -357,15 +357,15 @@ collect_scx_details(){
     netstat=$(ss -lp | grep -E ":opsmgr|:1270")
     omiprocesses=$(ps -ef | grep [o]mi | grep -v grep)
     omidstatus=$(systemctl status omid)
-    printf "*****SCX VERSION******\n" > "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    printf "\n*****SCX VERSION******\n" > "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
     printf "${scxversion}\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
-    printf "*****SCX STATUS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    printf "\n*****SCX STATUS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
     printf "${scxstatus}\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
-    printf "*****SCX PORT STATUS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    printf "\n*****SCX PORT STATUS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
     printf "${netstat}\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
-    printf "*****OMI PROCESSES******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    printf "\n*****OMI PROCESSES******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
     printf "${omiprocesses}\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
-    printf "*****OMID STATUS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    printf "\n*****OMID STATUS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
     printf "${omidstatus}\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
 
     #unable to figure out the redirection for now
@@ -390,17 +390,17 @@ collect_scx_details(){
 collect_scx_config_files(){
     printf "\tCopying config files.....\n"
     printf "\tCopying config files.....\n" >> "${path}"/scxdatacollector.log
-    cp -f /etc/opt/omi/conf/omiserver.conf "${path}"/SCOMLinuxDataCollectorData/configfiles/omiserver.conf_copy
+    cp -f /etc/opt/omi/conf/omiserver.conf "${path}"/SCOMLinuxDataCollectorData/configfiles/omiserverconf_copy.txt
 }
 
 collect_omi_scx_logs(){
     printf "\tCollecting details of OMI and SCX logs.....\n"
     printf "\tCollecting details of OMI and SCX logs.....\n" >> "${path}"/scxdatacollector.log
     omilogsetting=$(cat /etc/opt/omi/conf/omiserver.conf | grep -i loglevel)
-    printf "*****OMI LOG SETTINGS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    printf "\n*****OMI LOG SETTINGS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
     printf "$omilogsetting \n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
     scxlogsetting=$(scxadmin -log-list)
-    printf "*****SCX LOG SETTINGS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    printf "\n*****SCX LOG SETTINGS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
     printf "$scxlogsetting \n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
 
     printf "\tCopying OMI and SCX logs. Might take sometime. Hang On....\n"
@@ -478,11 +478,11 @@ collect_omi_scx_certs(){
 collect_scx_directories_structure(){
     printf "\tCollecting SCX DirectoryStructure.....\n"
     printf "\tCollecting SCX DirectoryStructure.....\n" >> "${path}"/scxdatacollector.log
-    $1 ls -lR /var/opt/microsoft/ >> "${path}"/SCOMLinuxDataCollectorData/scxdirectorystructure/var-opt-microsoft
-    $1 ls -lR /var/opt/omi >> "${path}"/SCOMLinuxDataCollectorData/scxdirectorystructure/var-opt-omi
-    $1 ls -lR /opt/omi/ >> "${path}"/SCOMLinuxDataCollectorData/scxdirectorystructure/opt-omi
-    $1 ls -lR /etc/opt/microsoft/ >> "${path}"/SCOMLinuxDataCollectorData/scxdirectorystructure/etc-opt-microsoft
-    $1 ls -lR /etc/opt/omi >> "${path}"/SCOMLinuxDataCollectorData/scxdirectorystructure/etc-opt-omi
+    $1 ls -lR /var/opt/microsoft/ >> "${path}"/SCOMLinuxDataCollectorData/scxdirectorystructure/var-opt-microsoft.txt
+    $1 ls -lR /var/opt/omi >> "${path}"/SCOMLinuxDataCollectorData/scxdirectorystructure/var-opt-omi.txt
+    $1 ls -lR /opt/omi/ >> "${path}"/SCOMLinuxDataCollectorData/scxdirectorystructure/opt-omi.txt
+    $1 ls -lR /etc/opt/microsoft/ >> "${path}"/SCOMLinuxDataCollectorData/scxdirectorystructure/etc-opt-microsoft.txt
+    $1 ls -lR /etc/opt/omi >> "${path}"/SCOMLinuxDataCollectorData/scxdirectorystructure/etc-opt-omi.txt
 }
 
 collect_omi_pam(){
@@ -490,9 +490,9 @@ collect_omi_pam(){
     printf "\tCollecting omi PAM details.....\n" >> "${path}"/scxdatacollector.log
     if [ -f /etc/opt/omi/conf/pam.conf ]; then
         # PAM configuration file found; use that
-        cp -f /etc/opt/omi/conf/pam.conf "${path}"/SCOMLinuxDataCollectorData/pam/pam.conf
+        cp -f /etc/opt/omi/conf/pam.conf "${path}"/SCOMLinuxDataCollectorData/pam/pamconf.txt
     elif [ -f /etc/pam.d/omi ]; then
-        cp -f /etc/pam.d/omi "${path}"/SCOMLinuxDataCollectorData/pam/omi
+        cp -f /etc/pam.d/omi "${path}"/SCOMLinuxDataCollectorData/pam/omi.txt
     fi
 }
 
@@ -501,7 +501,7 @@ collect_scx_provider_status(){
    printf "\tCollecting SCX Provider Details.....\n" >> "${path}"/scxdatacollector.log
    if [ -d "/etc/opt/omi/conf/omiregister" ]; then
       printf "\t\tomiregister directory found. Collecting more details.....\n" >> "${path}"/scxdatacollector.log
-      cp /etc/opt/omi/conf/omiregister/root-scx/* "${path}"/SCOMLinuxDataCollectorData/scxprovider
+      cp /etc/opt/omi/conf/omiregister/root-scx/* "${path}"/SCOMLinuxDataCollectorData/scxprovider.txt
    else
       printf "\t\tomiregister directory not found......\n" >> "${path}"/scxdatacollector.log
    fi
@@ -509,9 +509,9 @@ collect_scx_provider_status(){
    printf "\t\tQuery the omi cli and dumping details for one class from each identity (root, req, omi).....\n" >> "${path}"/scxdatacollector.log
    #We can think of dumping all the classes information if required.
    #However, we need to keep in mind if the provider is hung then we have to kill the query after sometime. That logic has to be built later.
-   /opt/omi/bin/omicli ei root/scx SCX_UnixProcess >> "${path}"/SCOMLinuxDataCollectorData/scxprovider/scxproviderstatus
-   /opt/omi/bin/omicli ei root/scx SCX_Agent >> "${path}"/SCOMLinuxDataCollectorData/scxprovider/scxproviderstatus
-   /opt/omi/bin/omicli ei root/scx SCX_OperatingSystem >> "${path}"/SCOMLinuxDataCollectorData/scxprovider/scxproviderstatus
+   /opt/omi/bin/omicli ei root/scx SCX_UnixProcess >> "${path}"/SCOMLinuxDataCollectorData/scxprovider/scxproviderstatus.txt
+   /opt/omi/bin/omicli ei root/scx SCX_Agent >> "${path}"/SCOMLinuxDataCollectorData/scxprovider/scxproviderstatus.txt
+   /opt/omi/bin/omicli ei root/scx SCX_OperatingSystem >> "${path}"/SCOMLinuxDataCollectorData/scxprovider/scxproviderstatus.txt
 }
 
 check_omi_core_files(){
@@ -532,13 +532,13 @@ check_scx_omi_log_rotation(){
     printf "\tChecking the log rotation configuration for omi and scx......\n" >> "${path}"/scxdatacollector.log
     if [ -f "/etc/opt/omi/conf/omilogrotate.conf" ]; then
         printf "\tFound omilogrotate.conf in path /etc/opt/omi/conf. Copying the file.. \n" >> "${path}"/scxdatacollector.log
-        cp -f /etc/opt/omi/conf/omilogrotate.conf  "${path}"/SCOMLinuxDataCollectorData/configfiles/omilogrotate.conf_copy
+        cp -f /etc/opt/omi/conf/omilogrotate.conf  "${path}"/SCOMLinuxDataCollectorData/configfiles/omilogrotateconf_copy.txt
     else
         printf "\tNot found omilogrotate.conf in path /etc/opt/omi/conf...... \n" >> "${path}"/scxdatacollector.log
     fi
     if [ -f "/etc/opt/microsoft/scx/conf/logrotate.conf" ]; then
         printf "\tFound logrotate.conf in path /etc/opt/microsoft/scx/conf. Copying the file.. \n" >> "${path}"/scxdatacollector.log
-        cp -f /etc/opt/microsoft/scx/conf/logrotate.conf  "${path}"/SCOMLinuxDataCollectorData/configfiles/scxlogrotate.conf_copy
+        cp -f /etc/opt/microsoft/scx/conf/logrotate.conf  "${path}"/SCOMLinuxDataCollectorData/configfiles/scxlogrotateconf_copy.txt
     else
         printf "\tNot found omilogrotate.conf in path /etc/opt/microsoft/scx/conf. Copying the file.. \n" >> "${path}"/scxdatacollector.log
     fi 
@@ -547,17 +547,17 @@ check_scx_omi_log_rotation(){
 test_tls_with_omi(){
     printf "\tTesting TLS 1.0, 1.1 and 1.2 on port 1270 locally. Might take sometime. Hang On.........\n"
     printf "\tTesting TLS 1.0, 1.1 and 1.2 on port 1270 locally. Might take sometime. Hang On..........\n" >> "${path}"/scxdatacollector.log
-    openssl s_client -connect localhost:1270 -tls1 < /dev/null > "${path}"/SCOMLinuxDataCollectorData/tlscheck/tls1 2> /dev/null
-    openssl s_client -connect localhost:1270 -tls1_1 < /dev/null > "${path}"/SCOMLinuxDataCollectorData/tlscheck/tls1.1 2> /dev/null
-    openssl s_client -connect localhost:1270 -tls1_2 < /dev/null > "${path}"/SCOMLinuxDataCollectorData/tlscheck/tls1.2 2> /dev/null
+    openssl s_client -connect localhost:1270 -tls1 < /dev/null > "${path}"/SCOMLinuxDataCollectorData/tlscheck/tls1.txt 2> /dev/null
+    openssl s_client -connect localhost:1270 -tls1_1 < /dev/null > "${path}"/SCOMLinuxDataCollectorData/tlscheck/tls1.1.txt 2> /dev/null
+    openssl s_client -connect localhost:1270 -tls1_2 < /dev/null > "${path}"/SCOMLinuxDataCollectorData/tlscheck/tls1.2.txt 2> /dev/null
 }
 
 archive_logs () {
    printf "\nSuccessfully completed the SCOM Linux Data Collector.....\n" >> "${path}"/scxdatacollector.log
    count=$(ls ${path}/SCOMLinuxDataCollectorData*.tar.gz 2>/dev/null | wc -l)
    if [ $count -ne 0 ]; then   
-      printf "\nFile SCOMLinuxDataCollectorData*.tar.gz already exist. Cleaning up before new archive.....\n"
-      printf "\nFile SCOMLinuxDataCollectorData*.tar.gz already exist. Cleaning up before new archive.....\n"  >> "${path}"/scxdatacollector.log
+      printf "File SCOMLinuxDataCollectorData*.tar.gz already exist. Cleaning up before new archive.....\n"
+      printf "File SCOMLinuxDataCollectorData*.tar.gz already exist. Cleaning up before new archive.....\n"  >> "${path}"/scxdatacollector.log
       rm -rf "${path}"/SCOMLinuxDataCollectorData*.tar.gz
    fi
 
