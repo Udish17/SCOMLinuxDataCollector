@@ -565,9 +565,10 @@ archive_logs () {
    echo -e "\n $(date) Successfully completed the SCOM Linux Data Collector steps. Few steps remaining....\n" >> "${path}"/scxdatacollector.log
    mv "${path}"/scxdatacollector.log "${path}"/SCOMLinuxDataCollectorData
    printf "Archiving and zipping SCOMLinuxDataCollectorData. Might take sometime. Hang On.....\n"
-   tar -cf "${path}"/SCOMLinuxDataCollectorData.tar "${path}"/SCOMLinuxDataCollectorData 2> /dev/null
+   dateformat=$(date +%d%m%Y)
+   tar -cf "${path}"/SCOMLinuxDataCollectorData_$(hostname)_$dateformat.tar "${path}"/SCOMLinuxDataCollectorData 2> /dev/null
 
-   gzip "${path}"/SCOMLinuxDataCollectorData.tar
+   gzip "${path}"/SCOMLinuxDataCollectorData*.tar
    printf "Clean up other data....\n"
    rm -rf "${path}"/SCOMLinuxDataCollectorData.tar
    rm -rf "${path}"/SCOMLinuxDataCollectorData
@@ -669,3 +670,30 @@ done
 
 printf "\nSuccessfully completed the SCOM Linux Data Collector.....\n"
 printf "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+
+
+: '
+MIT License
+
+Copyright (c) 2022 Udish Mudiar
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+ '
+
+
