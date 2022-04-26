@@ -684,7 +684,17 @@ done
 #function calls
         main "$path" "$maint" "$mon"
 
-printf "\nSuccessfully completed the SCOM Linux Data Collector.....\n"
+
+printf "****************************************************************************************************************************************************"
+printf "\n********************************************************REVIEW**************************************************************************************"
+printf "\n****************************************************************************************************************************************************"
+printf "\nThe collected zip file may contain personally identifiable or security related information, including but not necessarily limited to host names,"
+printf "\nIP addresses, hosts file, resolve.conf file, environment variable, openssh configuration etc."
+printf "\nThe collect zip file DOES NOT contain information like users, groups, firewall, sudo file details etc."
+printf "\nBy uploading the zip file to Microsoft Support you accept that you are aware of the content of the zip file. If you have Data Privacy Guidelines"
+printf "\nwithin your organization, please remove the content, you do not wish you upload."
+printf "\n****************************************************************************************************************************************************"
+printf "\n\nSuccessfully completed the SCOM Linux Data Collector.\n"
 printf "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
 
 
