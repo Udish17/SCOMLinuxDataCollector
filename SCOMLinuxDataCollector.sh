@@ -625,6 +625,7 @@ main(){
 
     if [ -z "${path}"  ]; then
         path=$(pwd)
+        ls -ld $path
         echo "Does the output path has write access for the sudo user?(Y/N)"
         read answer        
         if [ "${answer}" = "N" ]; then
@@ -642,6 +643,7 @@ main(){
             printf "Log Collection Path is NULL. Setting Path to current working directory......\n" >> "${path}"/scxdatacollector.log        
         fi   
     else
+        ls -ld $path
         echo "Does the output path has write access for the sudo user?(Y/N)"
         read answer        
         if [ "${answer}" = "N" ]; then
