@@ -12,8 +12,7 @@
 #https://docs.microsoft.com/en-US/troubleshoot/azure/general/secure-file-exchange-transfer-files
 #
 
-help()
-{
+help(){
     printf "\nAbout:\n\tThis shell script is used to collect basic information about the Operating System and SCOM Linux (SCX) Agent"
     printf "\n\tThis is a read -r only script and does not make any changes to the system."
     printf "\n\nUsage: [OPTIONS]"
@@ -622,13 +621,17 @@ sub_main_non_root(){
 main(){
     printf "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
     #clearing the scxdatacollector.log file to start with
-    #using sudo out-of-box even if the user is root to avoid permission denied on the intial log file creation.
-    sudo printf "" > "${path}"/scxdatacollector.log    
+    #using sudo out-of-box even if the user is root to avoid permission denied on the intial log file creation.   
 
     if [ ! -n "${path}"  ]; then
+        path=$(pwd)
+        sudo printf "" > "${path}"/scxdatacollector.log 
         printf "Log Collection Path is NULL. Setting Path to current working directory......\n"
         printf "Log Collection Path is NULL. Setting Path to current working directory......\n" >> "${path}"/scxdatacollector.log
-        path=$(pwd)
+    else
+        sudo printf "" > "${path}"/scxdatacollector.log
+        printf "Log Collection Path is NULL. Setting Path to current working directory......\n"
+        printf "Log Collection Path is NULL. Setting Path to current working directory......\n" >> "${path}"/scxdatacollector.log   
     fi
 
     #Currently supporting SCX 2016+ versions
