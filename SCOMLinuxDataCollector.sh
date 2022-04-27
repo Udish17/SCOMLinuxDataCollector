@@ -644,7 +644,7 @@ main(){
     user="$(whoami)"
     printf "Script is running under user: ${user}.....\n"
     printf "Script is running under user: ${user}.....\n" >> "${path}"/scxdatacollector.log
-    if [ "$user"=='root' ]; then
+    if [ "$user" = 'root' ]; then
          printf "\tUser is root. Collecting maximum information.....\n"
          sub_main_root "$path" "$maint" "$mon"
     else
