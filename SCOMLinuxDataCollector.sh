@@ -625,35 +625,53 @@ main(){
 
     if [ -z "${path}"  ]; then
         path=$(pwd)
-        ls -ld $path
-        echo "Does the output path has write access for the sudo user?(Y/N)"
-        read answer        
-        if [ "${answer}" = "N" ]; then
-            echo "Do you want to set the write permission on the path for the current user and continue?(Y/N)"
-            read answer  
-            if [ "${answer}" = "Y" ]; then
-                sudo chmod o+w $path
-            elif [ "${answer}" = "Y" ]; then
-                echo "Exiting script. Provide the write access on the output path and rerun the script. Or output it to a directory which has write access to the user"
-                exit
-            fi            
-        elif [ "${answer}" = "Y" ]; then  
-            sudo printf "" > "${path}"/scxdatacollector.log 
+        if [ $(whoami) = "root" ]; then
+            printf "" > "${path}"/scxdatacollector.log 
             printf "Log Collection Path is NULL. Setting Path to current working directory......\n"
-            printf "Log Collection Path is NULL. Setting Path to current working directory......\n" >> "${path}"/scxdatacollector.log        
-        fi   
+            printf "Log Collection Path is NULL. Setting Path to current working directory......\n" >> "${path}"/scxdatacollector.log
+        else
+            ls -ld $path
+            echo "Does the output path has write access for the sudo user $(whoami)?(Y/N)"
+            read answer        
+            if [ "${answer}" = "N" ]; then
+                echo "Do you want to set the write permission on the path for the current user and continue?(Y/N)"
+                read answer  
+                if [ "${answer}" = "Y" ]; then
+                    sudo chmod o+w $path
+                elif [ "${answer}" = "N" ]; then
+                    echo "Exiting script. Provide the write access on the output path and rerun the script. Or output it to a directory which has write access to the user"
+                    exit
+                fi            
+            elif [ "${answer}" = "Y" ]; then  
+                sudo printf "" > "${path}"/scxdatacollector.log 
+                printf "Log Collection Path is NULL. Setting Path to current working directory......\n"
+                printf "Log Collection Path is NULL. Setting Path to current working directory......\n" >> "${path}"/scxdatacollector.log        
+            fi   
+        fi        
     else
-        ls -ld $path
-        echo "Does the output path has write access for the sudo user?(Y/N)"
-        read answer        
-        if [ "${answer}" = "N" ]; then
-            echo "Exiting script. Provide the write access on the output path and rerun the script"
-            exit
-        elif [ "${answer}" = "Y" ]; then  
-            sudo printf "" > "${path}"/scxdatacollector.log 
+        if [ $(whoami) = "root" ]; then
+            printf "" > "${path}"/scxdatacollector.log 
             printf "Log Collection Path is NULL. Setting Path to current working directory......\n"
-            printf "Log Collection Path is NULL. Setting Path to current working directory......\n" >> "${path}"/scxdatacollector.log        
-        fi   
+            printf "Log Collection Path is NULL. Setting Path to current working directory......\n" >> "${path}"/scxdatacollector.log
+        else
+            ls -ld $path
+            echo "Does the output path has write access for the sudo user $(whoami)?(Y/N)"
+            read answer        
+            if [ "${answer}" = "N" ]; then
+                echo "Do you want to set the write permission on the path for the current user and continue?(Y/N)"
+                read answer  
+                if [ "${answer}" = "Y" ]; then
+                    sudo chmod o+w $path
+                elif [ "${answer}" = "N" ]; then
+                    echo "Exiting script. Provide the write access on the output path and rerun the script. Or output it to a directory which has write access to the user"
+                    exit
+                fi            
+            elif [ "${answer}" = "Y" ]; then  
+                sudo printf "" > "${path}"/scxdatacollector.log 
+                printf "Log Collection Path is NULL. Setting Path to current working directory......\n"
+                printf "Log Collection Path is NULL. Setting Path to current working directory......\n" >> "${path}"/scxdatacollector.log        
+            fi   
+        fi          
     fi
 
     #Currently supporting SCX 2016+ versions
