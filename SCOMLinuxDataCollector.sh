@@ -379,7 +379,7 @@ collect_scx_details(){
     collect_scx_config_files
     collect_omi_scx_logs
     collect_omi_scx_certs
-    collect_scx_directories_structure "$1"
+    collect_scx_directories_structure "sudo"
     collect_omi_pam
     collect_scx_provider_status
     check_omi_core_files
@@ -501,7 +501,7 @@ collect_scx_provider_status(){
    printf "\tCollecting SCX Provider Details.....\n" >> "${path}"/scxdatacollector.log
    if [ -d "/etc/opt/omi/conf/omiregister" ]; then
       printf "\t\tomiregister directory found. Collecting more details.....\n" >> "${path}"/scxdatacollector.log
-      cp /etc/opt/omi/conf/omiregister/root-scx/* "${path}"/SCOMLinuxDataCollectorData/scxprovider.txt
+      cp /etc/opt/omi/conf/omiregister/root-scx/* "${path}"/SCOMLinuxDataCollectorData/scxprovider
    else
       printf "\t\tomiregister directory not found......\n" >> "${path}"/scxdatacollector.log
    fi
