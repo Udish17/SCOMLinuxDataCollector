@@ -623,7 +623,7 @@ main(){
     #clearing the scxdatacollector.log file to start with
     #using sudo out-of-box even if the user is root to avoid permission denied on the intial log file creation.   
 
-    if [ ! -n "${path}"  ]; then
+    if [ -z "${path}"  ]; then
         path=$(pwd)
         sudo printf "" > "${path}"/scxdatacollector.log 
         printf "Log Collection Path is NULL. Setting Path to current working directory......\n"
@@ -653,6 +653,7 @@ main(){
          sub_main_root "$path" "$maint" "$mon"
     else
          printf "\tUser is non root. Collecting information based on the level of privilege.....\n"
+         
          sub_main_non_root "$path" "$maint" "$mon"
     fi
 }
