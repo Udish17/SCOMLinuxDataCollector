@@ -1,16 +1,18 @@
 #! /bin/bash
-#About:
-#   This script is written for data collection from Linux machines which can help in troubleshooting SCOM UNIX/LINUX Agent (SCXAgent)
-#Original Author :
-#   Udish Mudiar, Microsoft Customer Service Support Professional
-#Modified by :
-#   Blake Drumm, Microsoft Customer Service Support Professional
-#Feedback :
-#   Email udmudiar@microsoft.com
-#   Or the engineer you are working with
-#How the data is transfered to Microsoft. We do secure transfer.
-#https://docs.microsoft.com/en-US/troubleshoot/azure/general/secure-file-exchange-transfer-files
-#
+: <<'ScriptInformationBlock'
+    About:
+       This script is written for data collection from Linux machines which can help in troubleshooting SCOM UNIX/LINUX Agent (SCXAgent)
+    Original Author :
+       Udish Mudiar, Microsoft Customer Service Support Professional
+    Modified by :
+       Blake Drumm, Microsoft Customer Service Support Professional
+    Feedback :
+       Email udmudiar@microsoft.com
+       Or the engineer you are working with
+    How the data is transfered to Microsoft. We do secure transfer.
+    https://docs.microsoft.com/en-US/troubleshoot/azure/general/secure-file-exchange-transfer-files
+    
+ScriptInformationBlock
 
 help()
 {
@@ -181,8 +183,8 @@ collect_openssh_details(){
     $1 sshd -T | grep macs >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     printf "\n******HOST KEY ALGORITHIMS DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     $1 sshd -T | grep keyalgorithms >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-	#copy the sshd configuration file
-    echo -e "\n******Copying sshd config file******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    #copy the sshd configuration file
+    printf "\n******Copying sshd config file******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     $1 cp -f /etc/ssh/sshd_config  "${path}"/SCOMLinuxDataCollectorData/configfiles/sshd_config_copy.txt
 }
 
@@ -320,8 +322,8 @@ detect_installer(){
 }
 
 check_scx_installed(){
-    printf "Checking if SCX is installed.....\n"
-    printf "Checking if SCX is installed.....\n" >> "${path}"/scxdatacollector.log
+    printf "\nChecking if SCX is installed.....\n"
+    printf "\nChecking if SCX is installed.....\n" >> "${path}"/scxdatacollector.log
     #we will check if the installer is rpm or dpkg and based on that run the package command.
     if [ "$installer" = "rpm" ]; then
         scx=$(rpm -qa scx 2>/dev/null)
@@ -331,6 +333,7 @@ check_scx_installed(){
             #calling function to gather more information about SCX
             collect_scx_details "$2"
         else
+			printf "\tSCX package is not installed. Not collecting any further details.....\n"
             printf "\tSCX package is not installed. Not collecting any further details.....\n" >> "${path}"/scxdatacollector.log
         fi
     #we will assume if not rpm then dpkg.
@@ -342,6 +345,7 @@ check_scx_installed(){
             #calling function to gather more information about SCX
             collect_scx_details "$2"
         else
+			printf "\tSCX package is not installed. Not collecting any further details.....\n"
             printf "\tSCX package is not installed. Not collecting any further details.....\n" >> "${path}"/scxdatacollector.log
         fi
     fi
@@ -563,7 +567,7 @@ archive_logs () {
 
    printf "Moving the scxdatacollector.log file to SCOMLinuxDataCollectorData.\n"
    printf "Moving the scxdatacollector.log file to SCOMLinuxDataCollectorData. Archiving and zipping SCOMLinuxDataCollectorData. Cleaning up other data....\n" >> "${path}"/scxdatacollector.log
-   echo -e "\n $(date) Successfully completed the SCOM Linux Data Collector steps. Few steps remaining....\n" >> "${path}"/scxdatacollector.log
+   printf "\n $(date) Successfully completed the SCOM Linux Data Collector steps. Few steps remaining....\n" >> "${path}"/scxdatacollector.log
    mv "${path}"/scxdatacollector.log "${path}"/SCOMLinuxDataCollectorData
    printf "Archiving and zipping SCOMLinuxDataCollectorData. Might take sometime. Hang On.....\n"
    dateformat=$(date +%d%m%Y)
@@ -700,7 +704,7 @@ printf "\n\nSuccessfully completed the SCOM Linux Data Collector.\n"
 printf "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
 
 
-: '
+: <<'LicenseInformation'
 MIT License
 
 Copyright (c) 2022 Udish Mudiar
@@ -722,6 +726,5 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
- '
 
-
+LicenseInformation
