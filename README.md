@@ -2,8 +2,8 @@
 
 [https://aka.ms/SCOM-LinuxDataCollector](https://aka.ms/SCOM-LinuxDataCollector)
 
-- The SCOM Linux Data Collector is a shell script which can be run on Linux Distribution to collect information about the Operating System and the SCOM Linux Agent.\
-- This tool can be helpful to figure out problems one might encounter during SCOM Linux Agent Installation and Monitoring.\
+- The SCOM Linux Data Collector is a shell script which can be run on Linux Distribution to collect information about the Operating System and the SCOM Linux Agent.
+- This tool can be helpful to figure out problems one might encounter during SCOM Linux Agent Installation and Monitoring.
 - The tool is Read-Only and does not change the state of the executed machine.
 
 | Parameters | Purpose               | Description                                                                                                      |
@@ -16,6 +16,7 @@
 ```bash
 ~\# bash SCOMLinuxDataCollector.sh -o [output directory] -m [scom maintenance account] -n [scom monitoring account]
 ```
+
 ### Example
 ```bash
 ~\# bash SCOMLinuxDataCollector.sh -o /tmp -m scxmaint -n scxmon
