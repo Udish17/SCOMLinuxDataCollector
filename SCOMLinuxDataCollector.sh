@@ -204,6 +204,18 @@ collect_openssl_details() {
     openssl version -a >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     printf "\n******OPENSSL CIPHERS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     openssl ciphers -v >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+
+    #As RHEL9.1 needs openssh version >= 8.7p1-29, adding additional check
+    #https://learn.microsoft.com/en-us/system-center/scom/plan-supported-crossplat-os?view=sc-om-2019
+    if [ $(uname) == "Linux" ]; then
+        version=$(cat /etc/*release | grep VERSION_ID | cut -d "=" -f 2 | sed "s/\"//" | sed "s/\"//")
+        major=$(echo $version | cut -d "." -f 1)
+        minor=$(echo $version | cut -d "." -f 2)
+        if [ "$major" -ge "9" ]  && [ "$minor" -ge "1" ]; then
+            printf "\n******OpenSSH PACKAGES INSTALLED (Only for RHEL version 9.1 or higher)******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+            rpm -qa | grep -i openssh >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        fi   
+    fi    
 }
 
 collect_openssh_details(){
