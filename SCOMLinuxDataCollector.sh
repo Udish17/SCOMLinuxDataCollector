@@ -523,6 +523,33 @@ check_scx_installed(){
         if [ "$scx" ]; then
             printf "\tSCX package is installed. Collecting SCX details.....\n"
             printf "\tSCX package is installed. Collecting SCX details.....\n" >> "${path}"/scxdatacollector.log
+            printf "\tChecking OMI, SCX, OMSAgent package.....\n"
+            printf "\tChecking OMI, SCX, OMSAgent package....\n" >> "${path}"/scxdatacollector.log
+
+            #checking relevant packages
+            scxpkg=$(rpm -qa scx 2>/dev/null)
+            omipkg=$(rpm -qa omi 2>/dev/null)
+            omsagentpkg=$(rpm -qa omsagent 2>/dev/null)
+            
+            if [ "$scxpkg" ]; then
+                printf "\t********PACKAGE DETAILS*****\n"
+                printf "\tSCX package is installed. Collecting package details.....\n"
+                printf "\tSCX package is installed. Collecting package details.....\n" >> "${path}"/scxdatacollector.log
+                $scxpkg >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt            
+            fi
+            if [ "$omipkg" ]; then
+                printf "\t********PACKAGE DETAILS*****\n"
+                printf "\tOMI package is installed. Collecting package details.....\n"
+                printf "\tOMI package is installed. Collecting package details.....\n" >> "${path}"/scxdatacollector.log
+                $omipkg >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt            
+            fi
+            if [ "$omsagentpkg" ]; then
+                printf "\t********PACKAGE DETAILS*****\n"
+                printf "\tSCX package is installed. Collecting package details.....\n"
+                printf "\tSCX package is installed. Collecting package details.....\n" >> "${path}"/scxdatacollector.log
+                $omsagentpkg >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt            
+            fi     
+            
             #calling function to gather more information about SCX
             collect_scx_details "$2"
         else
