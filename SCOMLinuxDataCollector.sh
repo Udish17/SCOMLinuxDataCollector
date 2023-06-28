@@ -536,22 +536,20 @@ check_scx_installed(){
             omsagentpkg=$(rpm -qa omsagent 2>/dev/null)
             
             if [ "$scxpkg" ]; then
-                printf "\t********PACKAGE DETAILS*****\n"
-                printf "\tSCX package is installed. Collecting package details.....\n"
-                printf "\tSCX package is installed. Collecting package details.....\n" >> "${path}"/scxdatacollector.log
-                $scxpkg >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt            
+                printf "*****PACKAGE DETAILS*****\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt 
+                printf "\t\tSCX package is installed. Collecting package details.....\n"
+                printf "\t\tSCX package is installed. Collecting package details.....\n" >> "${path}"/scxdatacollector.log
+                printf "$scxpkg" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt            
             fi
-            if [ "$omipkg" ]; then
-                printf "\t********PACKAGE DETAILS*****\n"
-                printf "\tOMI package is installed. Collecting package details.....\n"
-                printf "\tOMI package is installed. Collecting package details.....\n" >> "${path}"/scxdatacollector.log
-                $omipkg >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt            
+            if [ "$omipkg" ]; then                
+                printf "\t\tOMI package is installed. Collecting package details.....\n"
+                printf "\t\tOMI package is installed. Collecting package details.....\n" >> "${path}"/scxdatacollector.log
+                printf "\n$omipkg" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt            
             fi
-            if [ "$omsagentpkg" ]; then
-                printf "\t********PACKAGE DETAILS*****\n"
-                printf "\tSCX package is installed. Collecting package details.....\n"
-                printf "\tSCX package is installed. Collecting package details.....\n" >> "${path}"/scxdatacollector.log
-                $omsagentpkg >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt            
+            if [ "$omsagentpkg" ]; then            
+                printf "\t\tOMSAgent package is installed. Collecting package details.....\n"
+                printf "\t\tOMSAgent package is installed. Collecting package details.....\n" >> "${path}"/scxdatacollector.log
+                printf "\n$omsagentpkg" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt            
             fi     
             
             #calling function to gather more information about SCX
@@ -566,6 +564,29 @@ check_scx_installed(){
         if [ "$scx" ]; then
             printf "\tSCX package is installed. Collecting SCX details.....\n"
             printf "\tSCX package is installed. Collecting SCX details.....\n" >> "${path}"/scxdatacollector.log
+            
+            #checking relevant packages
+            scxpkg=$(dpkg -s scx 2>/dev/null)
+            omipkg=$(dpkg -s omi 2>/dev/null)
+            omsagentpkg=$(dpkg -s omsagent 2>/dev/null)
+            
+            if [ "$scxpkg" ]; then
+                printf "*****PACKAGE DETAILS*****\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt 
+                printf "\t\tSCX package is installed. Collecting package details.....\n"
+                printf "\t\tSCX package is installed. Collecting package details.....\n" >> "${path}"/scxdatacollector.log
+                printf "$scxpkg" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt            
+            fi
+            if [ "$omipkg" ]; then                
+                printf "\t\tOMI package is installed. Collecting package details.....\n"
+                printf "\t\tOMI package is installed. Collecting package details.....\n" >> "${path}"/scxdatacollector.log
+                printf "\n\n$omipkg" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt            
+            fi
+            if [ "$omsagentpkg" ]; then            
+                printf "\t\tOMSAgent package is installed. Collecting package details.....\n"
+                printf "\t\tOMSAgent package is installed. Collecting package details.....\n" >> "${path}"/scxdatacollector.log
+                printf "\n\n$omsagentpkg" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt            
+            fi
+            
             #calling function to gather more information about SCX
             collect_scx_details "$2"
         else
@@ -577,6 +598,23 @@ check_scx_installed(){
         if [ "$scx" ]; then
             printf "\tSCX package is installed. Collecting SCX details.....\n"
             printf "\tSCX package is installed. Collecting SCX details.....\n" >> "${path}"/scxdatacollector.log
+
+            #checking relevant packages
+            scxpkg=$(pkginfo -l MSFTscx 2>/dev/null)
+            omipkg=$(pkginfo -l MSFTomi 2>/dev/null)            
+            
+            if [ "$scxpkg" ]; then
+                printf "*****PACKAGE DETAILS*****\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt 
+                printf "\t\tSCX package is installed. Collecting package details.....\n"
+                printf "\t\tSCX package is installed. Collecting package details.....\n" >> "${path}"/scxdatacollector.log
+                printf "$scxpkg" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt            
+            fi
+            if [ "$omipkg" ]; then                
+                printf "\t\tOMI package is installed. Collecting package details.....\n"
+                printf "\t\tOMI package is installed. Collecting package details.....\n" >> "${path}"/scxdatacollector.log
+                printf "\n\n$omipkg" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt            
+            fi          
+
             #calling function to gather more information about SCX
             collect_scx_details "$2"
         else
@@ -587,6 +625,23 @@ check_scx_installed(){
         if [ "$scx" ]; then
             printf "\tSCX package is installed. Collecting SCX details.....\n"
             printf "\tSCX package is installed. Collecting SCX details.....\n" >> "${path}"/scxdatacollector.log
+            
+            #checking relevant packages
+            scxpkg=$(lslpp -l scx.rte 2>/dev/null)
+            omipkg=$(lslpp -l omi.rte 2>/dev/null)            
+            
+            if [ "$scxpkg" ]; then
+                printf "*****PACKAGE DETAILS*****\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt 
+                printf "\t\tSCX package is installed. Collecting package details.....\n"
+                printf "\t\tSCX package is installed. Collecting package details.....\n" >> "${path}"/scxdatacollector.log
+                printf "$scxpkg" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt            
+            fi
+            if [ "$omipkg" ]; then                
+                printf "\t\tOMI package is installed. Collecting package details.....\n"
+                printf "\t\tOMI package is installed. Collecting package details.....\n" >> "${path}"/scxdatacollector.log
+                printf "\n\n$omipkg" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt            
+            fi
+
             #calling function to gather more information about SCX
             collect_scx_details "$2"
         else
@@ -614,7 +669,7 @@ collect_scx_details(){
     
     omiprocesses=$(ps -ef | grep [o]mi | grep -v grep)
     
-    printf "\n*****SCX VERSION******\n" > "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    printf "\n\n*****SCX VERSION******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
     printf "${scxversion}\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
     printf "\n*****SCX STATUS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
     printf "${scxstatus}\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
@@ -784,10 +839,10 @@ check_omi_core_files(){
     kernel=$(uname)
     if [ "$kernel" == "Linux" ]; then
         if [ "$(cat /etc/*release | grep -E "^NAME" | grep -i "Red Hat" | wc -l)" -eq 1 ]; then
-            echo "\t\tRed Hat Detected.... " >> "${path}"/scxdatacollector.log
+            printf "\t\tRed Hat Detected.... " >> "${path}"/scxdatacollector.log
             #RHEL8 onwards has seperate mechanisms to log core file.
             if [ "$(cat /etc/*release | grep VERSION_ID | cut -d "=" -f 2 | sed  's/"//' | sed  's/"//' | cut -d "." -f 1)" -gt 7 ]; then
-                echo "Red Hat 8+ detected...." >> "${path}"/scxdatacollector.log
+                printf "Red Hat 8+ detected...." >> "${path}"/scxdatacollector.log
                 corefilescount=$(ls -1 /var/lib/systemd/coredump/core.omi* 2>/dev/null | wc -l)
                 if [ "${corefilescount}" -ne 0 ]; then
                     printf "\t\tFound core files in path /var/lib/systemd/coredump. Copying the core files.. \n" >> "${path}"/scxdatacollector.log
@@ -929,15 +984,15 @@ main(){
             printf "Log Collection Path is NULL. Setting Path to current working directory......\n" >> "${path}"/scxdatacollector.log
         else
             ls -ld $path
-            echo "Does the output path has write access for the sudo user $(whoami)?(Y/N)"
+            printf "Does the output path has write access for the sudo user $(whoami)?(Y/N)"
             read answer        
             if [ "${answer}" = "N" ]; then
-                echo "Do you want to set the write permission on the path for the current user and continue?(Y/N)"
+                printf "Do you want to set the write permission on the path for the current user and continue?(Y/N)"
                 read answer  
                 if [ "${answer}" = "Y" ]; then
                     sudo chmod o+w $path
                 elif [ "${answer}" = "N" ]; then
-                    echo "Exiting script. Provide the write access on the output path and rerun the script. Or output it to a directory which has write access to the user"
+                    printf "Exiting script. Provide the write access on the output path and rerun the script. Or output it to a directory which has write access to the user"
                     exit
                 fi            
             elif [ "${answer}" = "Y" ]; then  
@@ -953,15 +1008,15 @@ main(){
             printf "Log Collection Path is NULL. Setting Path to current working directory......\n" >> "${path}"/scxdatacollector.log
         else
             ls -ld $path
-            echo "Does the output path has write access for the sudo user $(whoami)?(Y/N)"
+            printf "Does the output path has write access for the sudo user $(whoami)?(Y/N)"
             read answer        
             if [ "${answer}" = "N" ]; then
-                echo "Do you want to set the write permission on the path for the current user and continue?(Y/N)"
+                printf "Do you want to set the write permission on the path for the current user and continue?(Y/N)"
                 read answer  
                 if [ "${answer}" = "Y" ]; then
                     sudo chmod o+w $path
                 elif [ "${answer}" = "N" ]; then
-                    echo "Exiting script. Provide the write access on the output path and rerun the script. Or output it to a directory which has write access to the user"
+                    printf "Exiting script. Provide the write access on the output path and rerun the script. Or output it to a directory which has write access to the user"
                     exit
                 fi            
             elif [ "${answer}" = "Y" ]; then  
