@@ -846,17 +846,18 @@ check_omi_core_files(){
                 corefilescount=$(ls -1 /var/lib/systemd/coredump/core.omi* 2>/dev/null | wc -l)
                 if [ "${corefilescount}" -ne 0 ]; then
                     printf "\t\tFound core files in path /var/lib/systemd/coredump. Copying the core files.. \n" >> "${path}"/scxdatacollector.log
-                    cp -f /var/lib/systemd/coredump/core.omi* "${path}"/SCOMLinuxDataCollectorData/core
+                    #make sure we only copy the latest core file to avoid bulk sizing of the data collector output
+                    cp -f "`ls -dtr1 /var/lib/systemd/coredump/core.omi* | tail -n 1`" "${path}"/SCOMLinuxDataCollectorData/core
                 else
                     printf "\t\tNo core files found in path /var/lib/systemd/coredump. No action needed....\n" >> "${path}"/scxdatacollector.log
                 fi                
             fi
-        #for other Linux distro using the default
+        #for other Linux distro using the cwd
         else
             corefilescount=$(ls -1 /var/opt/omi/run/core* 2>/dev/null | wc -l)
             if [ "${corefilescount}" -ne 0 ]; then
                 printf "\t\tFound core files in path /var/opt/omi/run/. Copying the core files.. \n" >> "${path}"/scxdatacollector.log
-                cp -f /var/opt/omi/run/core* "${path}"/SCOMLinuxDataCollectorData/core
+                cp -f "`ls -dtr1 /var/opt/omi/run/core* | tail -n 1`" "${path}"/SCOMLinuxDataCollectorData/core
             else
                 printf "\t\tNo core files found in path /var/opt/omi/run/. No action needed....\n" >> "${path}"/scxdatacollector.log
             fi
@@ -865,7 +866,7 @@ check_omi_core_files(){
         corefilescount=$(ls -1 /var/opt/omi/run/core* 2>/dev/null | wc -l)
         if [ "${corefilescount}" -ne 0 ]; then
             printf "\t\tFound core files in path /var/opt/omi/run/. Copying the core files.. \n" >> "${path}"/scxdatacollector.log
-            cp -f /var/opt/omi/run/core* "${path}"/SCOMLinuxDataCollectorData/core
+            cp -f "`ls -dtr1 /var/opt/omi/run/core* | tail -n 1`"  "${path}"/SCOMLinuxDataCollectorData/core
         else
             printf "\t\tNo core files found in path /var/opt/omi/run/. No action needed....\n" >> "${path}"/scxdatacollector.log
         fi
