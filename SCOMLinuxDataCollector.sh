@@ -121,16 +121,16 @@ collect_os_details() {
     collect_system_logs sudo
     collect_compute
     collect_disk_space
-    collect_network_details
-    collect_openssl_details
+    collect_network_details    
     collect_openssh_details sudo
-    collect_crypto_details
+    #collect_crypto_details
     check_kerberos_enabled
     collect_selinux_details
     collect_env_variable
     collect_readonly_variable    
     collect_other_config_files sudo
-    collect_fips_details    #make this the last function call for readable output
+    collect_fips_details
+    collect_openssl_details    #make this the last function call for readable output
 }
 
 collect_host_name() {
@@ -198,26 +198,14 @@ collect_compute(){
 }
 
 collect_openssl_details() {
-    printf "\tCollecting Openssl & Openssh Details.....\n"
-    printf "\tCollecting Openssl & Openssh Details.....\n" >> "${path}"/scxdatacollector.log
+    printf "\tCollecting Openssl details.....\n"
+    printf "\tCollecting Openssl &details.....\n" >> "${path}"/scxdatacollector.log
     printf "\n******OPENSSL & OPENSSH VERSION******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     ssh -V  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt  2>&1 #this command is kernel agnostic
     printf "\n******OPENSSL VERBOSE******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     openssl version -a >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     printf "\n******OPENSSL CIPHERS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-    openssl ciphers -v >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-
-    #As RHEL9.1 needs openssh version >= 8.7p1-29, adding additional check
-    #https://learn.microsoft.com/en-us/system-center/scom/plan-supported-crossplat-os?view=sc-om-2019
-    if [ $(uname) == "Linux" ]; then
-        version=$(cat /etc/*release | grep VERSION_ID | cut -d "=" -f 2 | sed "s/\"//" | sed "s/\"//")
-        major=$(echo $version | cut -d "." -f 1)
-        minor=$(echo $version | cut -d "." -f 2)
-        if [ "$major" -ge "9" ]  && [ "$minor" -ge "1" ]; then
-            printf "\n******OpenSSH PACKAGES INSTALLED (Only for RHEL version 9.1 or higher)******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-            rpm -qa | grep -i openssh >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        fi   
-    fi    
+    openssl ciphers -v >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt     
 }
 
 collect_openssh_details(){
@@ -229,16 +217,50 @@ collect_openssh_details(){
         #checking Kex settings in sshd. We are interested in the sshd server settings.
         printf "\n******SSH DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         printf "\n******KEY EXCHANGE ALGORITHIM (KEX) DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        $1 sshd -T | egrep ^kexalgorithms >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        $1 sshd -T | egrep ^kexalgorithms 2>&1  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         printf "\n******CIPHERS DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        $1 sshd -T | grep ciphers >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        $1 sshd -T | grep ciphers 2>&1  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         printf "\n******MACS DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        $1 sshd -T | grep macs >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        $1 sshd -T | grep macs 2>&1  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         printf "\n******HOST KEY ALGORITHIMS DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        $1 sshd -T | grep keyalgorithms >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        $1 sshd -T | grep keyalgorithms 2>&1 >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         #copy the sshd configuration file
         printf "\n******Copying sshd config file******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         $1 cp -f /etc/ssh/sshd_config  "${path}"/SCOMLinuxDataCollectorData/configfiles/sshd_config_copy.txt
+
+        #if it is Linux and RHEL 8 or higher need to collect infromation of system wide crypto policies
+        if [ $(uname) == "Linux" ]; then
+            version=$(cat /etc/*release | grep VERSION_ID | cut -d "=" -f 2 | sed "s/\"//" | sed "s/\"//")
+            major=$(echo $version | cut -d "." -f 1)
+            minor=$(echo $version | cut -d "." -f 2)
+            if [ "$major" -ge "8" ]  && [ "$minor" -ge "0" ]; then
+                printf "\t\tCollecting crypto policies. Detected RHEL version 8.0 or higher. \n" 
+                printf "\n******RHEL version 8.0 or higher. Collecting crypto policies******\n"  >> "${path}"/scxdatacollector.log
+                printf "\n******RHEL version 8.0 or higher. Below are crypto policies******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+                update-crypto-policies --show >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+                printf "\t\tCopying crypto policies file.....\n"
+                printf "\tCollecting Openssl & Openssh Details.....\n" >> "${path}"/scxdatacollector.log
+                if [[ -e /etc/ssh/sshd_config.d ]]; then
+                    $1 cp -R /etc/ssh/sshd_config.d/.  "${path}"/SCOMLinuxDataCollectorData/configfiles/
+                else
+                    printf "\n******/etc/ssh/sshd_config.d not present.******\n"  >> "${path}"/scxdatacollector.log                    
+                fi            
+            fi   
+        fi 
+
+        #As RHEL9.1 needs openssh version >= 8.7p1-29, adding additional check
+        #https://learn.microsoft.com/en-us/system-center/scom/plan-supported-crossplat-os?view=sc-om-2019
+        if [ $(uname) == "Linux" ]; then
+            version=$(cat /etc/*release | grep VERSION_ID | cut -d "=" -f 2 | sed "s/\"//" | sed "s/\"//")
+            major=$(echo $version | cut -d "." -f 1)
+            minor=$(echo $version | cut -d "." -f 2)
+            if [ "$major" -ge "9" ]  && [ "$minor" -ge "1" ]; then
+                printf "\n******OpenSSH PACKAGES INSTALLED (Only for RHEL version 9.1 or higher)******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+                rpm -qa | grep -i openssh >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+            fi   
+        fi   
+        
+
     elif [ "$kernel" == "SunOS" ]; then
         printf "\n******SSH DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         #SunOS does not have the sshd binary. Hence only copying the sshd config file
@@ -364,7 +386,7 @@ collect_crypto_details(){
         #checking crypto only for Linux as of now. Because we are not sure whether AIX or SunOS has the crypto settings
         printf "\tCollecting Crypto details.....\n"
         printf "\tCollecting Crypto details.....\n" >> "${path}"/scxdatacollector.log
-        if [ "$(which update-crypto-policie 2>/dev/null)" ]; then
+        if [ "$(which update-crypto-policies 2>/dev/null)" ]; then
             printf "\t\t Crypto binary found. Collecting the status....\n" >> "${path}"/scxdatacollector.log
             printf "*****CRYPTO SETTINGS******\n" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
             update-crypto-policies --show >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
@@ -457,10 +479,13 @@ collect_fips_details(){
         printf "\tCollecting FIPS details......\n"
         printf "\n\n***************FIPS details************************\n" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         cat /proc/sys/crypto/fips_enabled >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        sysctl crypto.fips_enabled >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        printf "\n\nChecking if FIPS enabled machine has a file descriptor leak of omiserver......\n" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        sudo lsof -p $(ps -ef | grep -i omiserver | grep -v grep | awk '{print $2}') >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        sysctl crypto.fips_enabled >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt        
     fi
+}
+
+collect_fips_leak(){
+    printf "\n\nChecking if FIPS enabled machine has a file descriptor leak of omiserver......\n" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    sudo lsof -p $(ps -ef | grep -i omiserver | grep -v grep | awk '{print $2}') >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
 }
 
 collect_readonly_variable(){
@@ -698,6 +723,7 @@ collect_scx_details(){
     check_scx_omi_log_rotation
     test_tls_with_omi
     check_omiserver_dependencies
+    collect_fips_leak
 }
 
 collect_scx_config_files(){
@@ -1084,15 +1110,19 @@ done
         main "$path" "$maint" "$mon"
 
 
+# must use double quotes
+yellow_prefix="\033[33m"
+yellow_suffix="\033[00m"
+
+printf "\n****************************************************************************************************************************************************\n"
+printf "$yellow_prefix"********************************************************REVIEW**************************************************************************************
 printf "\n****************************************************************************************************************************************************"
-printf "\n********************************************************REVIEW**************************************************************************************"
-printf "\n****************************************************************************************************************************************************"
-printf "\nThe collected zip file may contain personally identifiable or security related information, including but not necessarily limited to host names,"
-printf "\nIP addresses, hosts file, resolve.conf file, environment variable, openssh configuration etc."
-printf "\nThe collect zip file DOES NOT contain information like users, groups, firewall, sudo file details etc."
-printf "\nBy uploading the zip file to Microsoft Support you accept that you are aware of the content of the zip file. If you have Data Privacy Guidelines"
-printf "\nwithin your organization, please remove the content, you do not wish you upload."
-printf "\n****************************************************************************************************************************************************"
+printf "\nThe collected zip file may contain personally identifiable (PII) or security related information as per your organization or region,"
+printf "\nincluding but not necessarily limited to host names, IP addresses, hosts file, resolve.conf file, environment variable, openssh configuration etc."
+printf "\nThe data collected DOES NOT contain information like users, groups, firewall, sudo file details etc."
+printf "\nBy uploading the zip file to Microsoft Support, you accept that you are aware of the content of the zip file."
+printf "\nIf you have Data Privacy Guidelines within your organization or region, please remove the content, you do not wish to upload."
+printf "\n****************************************************************************************************************************************************""$yellow_suffix"
 printf "\n\nSuccessfully completed the SCOM Linux Data Collector.\n"
 printf "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
 
