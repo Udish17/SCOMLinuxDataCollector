@@ -484,8 +484,12 @@ collect_fips_details(){
 }
 
 collect_fips_leak(){
-    printf "\n\nChecking if FIPS enabled machine has a file descriptor leak of omiserver......\n" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-    sudo lsof -p $(ps -ef | grep -i omiserver | grep -v grep | awk '{print $2}') >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    kernel=$(uname)
+    if [ "$kernel" == "Linux" ]; then
+        printf "\n\nChecking if FIPS enabled RHEL machine has a file descriptor leak of omiserver......\n" >> "${path}"/scxdatacollector.log
+        printf "\n\nChecking if FIPS enabled RHEL machine has a file descriptor leak of omiserver......\n" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        sudo lsof -p $(ps -ef | grep -i omiserver | grep -v grep | awk '{print $2}') >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt        
+    fi    
 }
 
 collect_readonly_variable(){
@@ -544,8 +548,8 @@ detect_installer(){
 }
 
 check_scx_installed(){
-    printf "\nChecking if SCX is installed.....\n"
-    printf "\nChecking if SCX is installed.....\n" >> "${path}"/scxdatacollector.log
+    printf "Checking if SCX is installed.....\n"
+    printf "Checking if SCX is installed.....\n" >> "${path}"/scxdatacollector.log
     #we will check if the installer is rpm or dpkg and based on that run the package command.
     if [ "$installer" == "rpm" ]; then
         scx=$(rpm -qa scx 2>/dev/null)
@@ -875,7 +879,7 @@ check_omi_core_files(){
                     #make sure we only copy the latest core file to avoid bulk sizing of the data collector output
                     cp -f "`ls -dtr1 /var/lib/systemd/coredump/core.omi* | tail -n 1`" "${path}"/SCOMLinuxDataCollectorData/core
                 else
-                    printf "\t\tNo core files found in path /var/lib/systemd/coredump. No action needed....\n" >> "${path}"/scxdatacollector.log
+                    printf "\t\t\nNo core files found in path /var/lib/systemd/coredump. No action needed....\n" >> "${path}"/scxdatacollector.log
                 fi                
             fi
         #for other Linux distro using the cwd
@@ -931,25 +935,45 @@ check_omiserver_dependencies(){
     ldd /opt/omi/bin/omiserver >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
 }
 
+clean_empty_directory() {
+    printf "\tCleaning empty directories.........\n"
+    printf "\tCleaning empty directories.........\n" >> "${path}"/scxdatacollector.log    
+    dircheck="$path/SCOMLinuxDataCollectorData"    
+    for fn in `ls -1p $dircheck | grep '/$'`; do
+        if [ -z "$(ls -A -- "$dircheck/$fn")" ]; then
+            printf "\t\tFolder $dircheck/$fn is empty. Removing folder $dircheck/$fn\n" >> "${path}"/scxdatacollector.log 
+            #printf "\t\tFolder $fn is empty. Removing folder $fn\n"
+            rm -rf $dircheck/$fn
+        else
+            printf "\t\tFolder $dircheck/$fn is not empty\n"  >> "${path}"/scxdatacollector.log
+        fi; done
+}
+
 archive_logs () {
-   printf "\nSuccessfully completed the SCOM Linux Data Collector.....\n" >> "${path}"/scxdatacollector.log
+   printf "Successfully completed the SCOM Linux Data Collector.....\n" >> "${path}"/scxdatacollector.log
+   printf "Cleaning, archiving and zipping SCOMLinuxDataCollectorData. Might take sometime. Hang On.....\n"
    count=$(ls ${path}/SCOMLinuxDataCollectorData*.tar.gz 2>/dev/null | wc -l)
    if [ $count -ne 0 ]; then   
-      printf "File SCOMLinuxDataCollectorData*.tar.gz already exist. Cleaning up before new archive.....\n"
-      printf "File SCOMLinuxDataCollectorData*.tar.gz already exist. Cleaning up before new archive.....\n"  >> "${path}"/scxdatacollector.log
+      printf "\tFile SCOMLinuxDataCollectorData*.tar.gz already exist. Cleaning up before new archive.....\n"
+      printf "\tFile SCOMLinuxDataCollectorData*.tar.gz already exist. Cleaning up before new archive.....\n"  >> "${path}"/scxdatacollector.log
       sudo rm -rf "${path}"/SCOMLinuxDataCollectorData*.tar.gz
    fi
 
-   printf "Moving the scxdatacollector.log file to SCOMLinuxDataCollectorData.\n"
-   printf "Moving the scxdatacollector.log file to SCOMLinuxDataCollectorData. Archiving and zipping SCOMLinuxDataCollectorData. Cleaning up other data....\n" >> "${path}"/scxdatacollector.log
-   printf "\n $(date) Successfully completed the SCOM Linux Data Collector steps. Few steps remaining....\n" >> "${path}"/scxdatacollector.log
-   mv "${path}"/scxdatacollector.log "${path}"/SCOMLinuxDataCollectorData
-   printf "Archiving and zipping SCOMLinuxDataCollectorData. Might take sometime. Hang On.....\n"
+   #cleaning up empty directory 
+   clean_empty_directory
+
+   printf "\tMoving the scxdatacollector.log file to SCOMLinuxDataCollectorData.\n"
+   printf "\tMoving the scxdatacollector.log file to SCOMLinuxDataCollectorData. Archiving and zipping SCOMLinuxDataCollectorData. Cleaning up other data....\n" >> "${path}"/scxdatacollector.log
+   printf "\n $(date) Successfully completed the SCOM Linux Data Collector steps. Few steps remaining....\n" >> "${path}"/scxdatacollector.log 
+   
+
+   mv "${path}"/scxdatacollector.log "${path}"/SCOMLinuxDataCollectorData   
    dateformat=$(date +%d%m%Y)
    tar -cf "${path}"/SCOMLinuxDataCollectorData_$(hostname)_$dateformat.tar "${path}"/SCOMLinuxDataCollectorData 2> /dev/null
 
    gzip "${path}"/SCOMLinuxDataCollectorData*.tar
-   printf "Clean up other data....\n"
+   printf "\tClean up other data....\n"
+   printf "\tClean up other data....\n" >> "${path}"/scxdatacollector.log
    sudo rm -rf "${path}"/SCOMLinuxDataCollectorData.tar
    sudo rm -rf "${path}"/SCOMLinuxDataCollectorData
 }
