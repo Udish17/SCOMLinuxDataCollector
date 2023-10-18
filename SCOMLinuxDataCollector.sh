@@ -81,12 +81,12 @@ check_dir() {
     printf "Creating the directory structure to store the data from the collector.....\n" >> "${path}"/scxdatacollector.log
 
     if [ -d "${path}/SCOMLinuxDataCollectorData" ]; then
-        printf "\tPath %s/SCOMLinuxDataCollectorData is present. Removing and recreating the directory.....\n" "${path}"
+        #printf "\tPath %s/SCOMLinuxDataCollectorData is present. Removing and recreating the directory.....\n" "${path}"
         printf "\tPath %s/SCOMLinuxDataCollectorData is present. Removing and recreating the directory.....\n" "${path}" >> "${path}"/scxdatacollector.log
         sudo rm -rf "${path}"/SCOMLinuxDataCollectorData
         create_dir "${path}/SCOMLinuxDataCollectorData"
     else
-        printf "\tPath ${pwd} is not present in the current working directory. Creating the directory.....\n"
+        #printf "\tPath ${pwd} is not present in the current working directory. Creating the directory.....\n"
         printf "\tPath ${pwd} is not present in the current working directory. Creating the directory.....\n" >> "${path}"/scxdatacollector.log
         create_dir "${path}/SCOMLinuxDataCollectorData"
     fi
@@ -104,10 +104,10 @@ check_dir() {
 
 create_dir(){
     if [ -d "$1" ]; then
-        printf "\tPath $1 exists. No action needed......\n"
+        #printf "\tPath $1 exists. No action needed......\n"
         printf "\tPath $1 exists. No action needed......\n" >> "${path}"/scxdatacollector.log
     else
-        printf "\tPath $1 does not exists. Proceed with creation.....\n"
+        #printf "\tPath $1 does not exists. Proceed with creation.....\n"
         printf "\tPath $1 does not exists. Proceed with creation.....\n" >> "${path}"/scxdatacollector.log
         mkdir -p "$1"
     fi
@@ -119,60 +119,81 @@ collect_os_details() {
     collect_host_name
     collect_os_version
     collect_system_logs sudo
-    collect_compute
-    collect_disk_space
-    collect_network_details    
+    collect_compute    
+    collect_network_details
+    collect_crypto_details  
     collect_openssh_details sudo
-    #collect_crypto_details
     check_kerberos_enabled
     collect_selinux_details
     collect_env_variable
-    collect_readonly_variable    
+    collect_readonly_variable
+    collect_fips_details   
     collect_other_config_files sudo
-    collect_fips_details
+    collect_disk_space    
     collect_openssl_details    #make this the last function call for readable output
 }
 
 collect_host_name() {
     printf "\tCollecting HostName Details.....\n"
     printf "\tCollecting Hostname Details.....\n" >> "${path}"/scxdatacollector.log
-    printf "\n******HOSTNAME******\n"  > "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-    # below command works in all tested Kernel
-    hostname >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    printf "============================================================================="  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    printf "\n\n******HOSTNAME******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt    
+    printf "$(hostname)" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    printf "\n---------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    # below command works in all tested Kernel 
     #below is what SCOM check while creating the self-signed certificate as CN
     printf "\n******HOSTNAME FOR CERTS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     # below command works in all tested Kernel
     nslookuphostname=$(nslookup "$(hostname)" | grep '^Name:' | awk '{print $2}' | grep "$(hostname)")
-    if [ "${nslookuphostname}" ]; then
+    if [ "${nslookuphostname}" ]; then        
         printf "${nslookuphostname}" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-    else
+        printf "\n============================================================================="  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt        
+    else        
         printf "Unable to resolve hostname from nslookup." >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n============================================================================="  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt        
     fi
 }
 
 collect_os_version(){
     printf "\tCollecting OS Details.....\n"
     printf "\tCollecting OS Details.....\n" >> "${path}"/scxdatacollector.log
-    printf "\n\n******OS VERSION******"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    #printf "\n\n******OS VERSION******"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     kernel=$(uname)
     if [ "$kernel" == "Linux" ]; then
-        printf "\nOS Kernel is Linux">> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n\n******OS DETAILS******" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n-----------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\nOS KERNEL : Linux" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n-----------------------------------------------------------------------------" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         releasedata=$(cat /etc/*release)
 	    releaseversion=$(printf "$releasedata" | grep -Po '(?<=PRETTY_NAME=")[^"]*')
 	    printf "\t  Detected: ${releaseversion}"
+        printf "\nOS VERSION :" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n-----------------------------------------------------------------------------\n" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt      
         printf "$releasedata" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n=============================================================================" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt       
     elif [ "$kernel" == "SunOS" ]; then
-        printf "\nOS Kernel is SunOS">> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n******OS DETAILS******" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n-----------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\nOS Kernel : SunOS" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n-----------------------------------------------------------------------------" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         releasedata=$(cat /etc/*release)
 	    releaseversion=$(printf "$releasedata" | grep -i "version=")
 	    printf "\t  Detected: ${releaseversion}"
+        printf "\nOS VERSION :" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n-----------------------------------------------------------------------------\n" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         printf "$releasedata" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n=============================================================================" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     elif [ "$kernel" == "AIX" ]; then
+        printf "\n******OS DETAILS******" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n-----------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         printf "\nOS Kernel is AIX">> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         oslevel=$(oslevel -s)
         releaseinfo=$(oslevel)	    
 	    printf "\t  Detected: ${releaseinfo}"
-        printf "$oslevel" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt        
+        printf "\nOS VERSION :" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n-----------------------------------------------------------------------------\n" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt 
+        printf "$oslevel" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n=============================================================================" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt   
     fi	
 }
 
@@ -183,29 +204,47 @@ collect_compute(){
     if [ "$kernel" == "Linux" ]; then
         printf "\n\n******MEM AND CPU FOR OMISERVER PROCESS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         ps -C omiserver -o %cpu,%mem,cmd >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        printf "\n******MEM AND CPU FOR OMIENGINE PROCESS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n-----------------------------------------------------------------------------" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt       
+        printf "\n\n******MEM AND CPU FOR OMIENGINE PROCESS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         ps -C omiengine -o %cpu,%mem,cmd >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        printf "\n******MEM AND CPU FOR OMIAGENT PROCESSES******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n-----------------------------------------------------------------------------" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt        
+        printf "\n\n******MEM AND CPU FOR OMIAGENT PROCESSES******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         ps -C omiagent -o %cpu,%mem,cmd >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n=============================================================================" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     elif [[ "$kernel" == "SunOS" || "$kernel" == "AIX" ]]; then
         printf "\n\n******MEM AND CPU FOR OMISERVER PROCESS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         ps -efo pmem,pcpu,comm | grep -i omiserver >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        printf "\n******MEM AND CPU FOR OMIENGINE PROCESS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n-----------------------------------------------------------------------------" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt 
+        printf "\n\n******MEM AND CPU FOR OMIENGINE PROCESS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         ps -efo pmem,pcpu,comm | grep -i omiengine >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        printf "\n******MEM AND CPU FOR OMIAGENT PROCESSES******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        ps -efo pmem,pcpu,comm | grep -i omiagent >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt       
+        printf "\n-----------------------------------------------------------------------------" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt 
+        printf "\n\n******MEM AND CPU FOR OMIAGENT PROCESSES******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        ps -efo pmem,pcpu,comm | grep -i omiagent >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt 
+        printf "\n=============================================================================" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt     
     fi    
 }
 
 collect_openssl_details() {
     printf "\tCollecting Openssl details.....\n"
     printf "\tCollecting Openssl &details.....\n" >> "${path}"/scxdatacollector.log
-    printf "\n******OPENSSL & OPENSSH VERSION******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    printf "\n******OPENSSL DETAILS******"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    printf "\n---------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    
+    printf "\n\n******OPENSSL & OPENSSH VERSION******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     ssh -V  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt  2>&1 #this command is kernel agnostic
-    printf "\n******OPENSSL VERBOSE******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    printf "\n---------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    
+    printf "\n\n******OPENSSL VERSION******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    printf "$(openssl version)" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    printf "\n\n---------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt    
+    
+    printf "\n\n******OPENSSL VERBOSE******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     openssl version -a >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-    printf "\n******OPENSSL CIPHERS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-    openssl ciphers -v >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt     
+    printf "\n---------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt    
+    
+    printf "\n\n******OPENSSL CIPHERS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    openssl ciphers -v >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    printf "\n=========================================================================="  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt    
 }
 
 collect_openssh_details(){
@@ -215,70 +254,64 @@ collect_openssh_details(){
     kernel=$(uname)
     if [[ "$kernel" == "Linux" || "$kernel" == "AIX" ]]; then
         #checking Kex settings in sshd. We are interested in the sshd server settings.
-        printf "\n******SSH DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        printf "\n******KEY EXCHANGE ALGORITHIM (KEX) DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n\n******SSH DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n---------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        
+        printf "\n\n******OpenSSH PACKAGES******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "$(rpm -qa | grep -i openssh)" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n\n---------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt 
+        
+        printf "\n\n******KEY EXCHANGE ALGORITHIM (KEX) DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt        
         $1 sshd -T | egrep ^kexalgorithms 2>&1  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        printf "\n******CIPHERS DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n---------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt        
+        
+        printf "\n\n******CIPHERS DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         $1 sshd -T | grep ciphers 2>&1  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        printf "\n******MACS DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n---------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt        
+        
+        printf "\n\n******MACS DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         $1 sshd -T | grep macs 2>&1  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        printf "\n******HOST KEY ALGORITHIMS DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        $1 sshd -T | grep keyalgorithms 2>&1 >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n---------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt        
+    
+        printf "\n\n******HOST KEY ALGORITHIMS DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        $1 sshd -T | grep keyalgorithms 2>&1 >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt        
+        
         #copy the sshd configuration file
-        printf "\n******Copying sshd config file******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        #printf "\n******Copying sshd config file******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         $1 cp -f /etc/ssh/sshd_config  "${path}"/SCOMLinuxDataCollectorData/configfiles/sshd_config_copy.txt
-
-        #if it is Linux and RHEL 8 or higher need to collect infromation of system wide crypto policies
-        if [ $(uname) == "Linux" ]; then
-            version=$(cat /etc/*release | grep VERSION_ID | cut -d "=" -f 2 | sed "s/\"//" | sed "s/\"//")
-            major=$(echo $version | cut -d "." -f 1)
-            minor=$(echo $version | cut -d "." -f 2)
-            if [ "$major" -ge "8" ]  && [ "$minor" -ge "0" ]; then
-                printf "\t\tCollecting crypto policies. Detected RHEL version 8.0 or higher. \n" 
-                printf "\n******RHEL version 8.0 or higher. Collecting crypto policies******\n"  >> "${path}"/scxdatacollector.log
-                printf "\n******RHEL version 8.0 or higher. Below are crypto policies******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-                update-crypto-policies --show >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-                printf "\t\tCopying crypto policies file.....\n"
-                printf "\tCollecting Openssl & Openssh Details.....\n" >> "${path}"/scxdatacollector.log
-                if [[ -e /etc/ssh/sshd_config.d ]]; then
-                    $1 cp -R /etc/ssh/sshd_config.d/.  "${path}"/SCOMLinuxDataCollectorData/configfiles/
-                else
-                    printf "\n******/etc/ssh/sshd_config.d not present.******\n"  >> "${path}"/scxdatacollector.log                    
-                fi            
-            fi   
-        fi 
+        printf "\n==========================================================================="  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt       
 
         #As RHEL9.1 needs openssh version >= 8.7p1-29, adding additional check
         #https://learn.microsoft.com/en-us/system-center/scom/plan-supported-crossplat-os?view=sc-om-2019
-        if [ $(uname) == "Linux" ]; then
-            version=$(cat /etc/*release | grep VERSION_ID | cut -d "=" -f 2 | sed "s/\"//" | sed "s/\"//")
-            major=$(echo $version | cut -d "." -f 1)
-            minor=$(echo $version | cut -d "." -f 2)
-            if [ "$major" -ge "9" ]  && [ "$minor" -ge "1" ]; then
-                printf "\n******OpenSSH PACKAGES INSTALLED (Only for RHEL version 9.1 or higher)******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-                rpm -qa | grep -i openssh >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-            fi   
-        fi   
+        #if [ $(uname) == "Linux" ]; then
+        #    version=$(cat /etc/*release | grep VERSION_ID | cut -d "=" -f 2 | sed "s/\"//" | sed "s/\"//")
+        #    major=$(echo $version | cut -d "." -f 1)
+        #    minor=$(echo $version | cut -d "." -f 2)
+        #    if [ "$major" -ge "9" ]  && [ "$minor" -ge "1" ]; then
+        #        printf "\n******OpenSSH PACKAGES INSTALLED (Only for RHEL version 9.1 or higher)******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        #        rpm -qa | grep -i openssh >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        #    fi   
+        #fi
         
-
     elif [ "$kernel" == "SunOS" ]; then
         printf "\n******SSH DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         #SunOS does not have the sshd binary. Hence only copying the sshd config file
         printf "\n******Copying sshd config file******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         $1 cp -f /etc/ssh/sshd_config  "${path}"/SCOMLinuxDataCollectorData/configfiles/sshd_config_copy.txt     
     fi  
-
 }
 
 collect_disk_space(){
     printf "\tCollecting the file system usage.....\n"
     printf "\tCollecting the file system usage.....\n" >> "${path}"/scxdatacollector.log
     if [[ "$kernel" == "Linux" || "$kernel" == "SunOS" ]]; then        
-        printf "\n******FILE SYSTEM DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        sudo df -h >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n\n******FILE SYSTEM DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        sudo df -h >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt        
+        printf "\n==========================================================================="  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     elif [ "$kernel" == "AIX" ]; then        
-        printf "\n******FILE SYSTEM DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n\n******FILE SYSTEM DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         df -Pg >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt   
+        printf "\n==========================================================================="  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     fi   
 }
 
@@ -381,22 +414,31 @@ check_sudo_permission(){
 }
 
 collect_crypto_details(){
-    kernel=$(uname)
-    if [ "$kernel" == "Linux" ]; then
-        #checking crypto only for Linux as of now. Because we are not sure whether AIX or SunOS has the crypto settings
-        printf "\tCollecting Crypto details.....\n"
-        printf "\tCollecting Crypto details.....\n" >> "${path}"/scxdatacollector.log
-        if [ "$(which update-crypto-policies 2>/dev/null)" ]; then
-            printf "\t\t Crypto binary found. Collecting the status....\n" >> "${path}"/scxdatacollector.log
-            printf "*****CRYPTO SETTINGS******\n" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-            update-crypto-policies --show >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        else
-            printf "\t\t Crypto binary not found....\n" >> "${path}"/scxdatacollector.log
-        fi             
-    fi    
+    #if it is Linux and RHEL 8 or higher need to collect infromation of system wide crypto policies
+        if [ $(uname) == "Linux" ]; then
+            version=$(cat /etc/*release | grep VERSION_ID | cut -d "=" -f 2 | sed "s/\"//" | sed "s/\"//")
+            major=$(echo $version | cut -d "." -f 1)
+            minor=$(echo $version | cut -d "." -f 2)
+            if [ "$major" -ge "8" ]  && [ "$minor" -ge "0" ]; then
+                printf "\t\tCollecting crypto policies. Detected RHEL version 8.0 or higher. \n" 
+                printf "\n******RHEL version 8.0 or higher. Collecting crypto policies******\n"  >> "${path}"/scxdatacollector.log
+                printf "\n\n******CRYPTO POLICIES******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt                
+                update-crypto-policies --show >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+                printf "\n============================================================================"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt                
+                printf "\t\tCopying crypto policies file.....\n"
+                printf "\tCollecting Openssl & Openssh Details.....\n" >> "${path}"/scxdatacollector.log
+                if [[ -e /etc/ssh/sshd_config.d ]]; then
+                    $1 cp -R /etc/ssh/sshd_config.d/.  "${path}"/SCOMLinuxDataCollectorData/configfiles/
+                else
+                    printf "\n******/etc/ssh/sshd_config.d not present.******\n"  >> "${path}"/scxdatacollector.log                    
+                fi            
+            fi   
+        fi           
 }
 
 collect_selinux_details(){
+    printf "\n\n******INSTALLATION DEPENDENCY SETTINGS******"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    printf "\n---------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     kernel=$(uname)
     # not applicable for other kernels.
     if [ "$kernel" == "Linux" ]; then
@@ -406,10 +448,40 @@ collect_selinux_details(){
             printf "\t\t SELinux is installed. Collecting the status....\n" >> "${path}"/scxdatacollector.log
             printf "\n*****SELinux SETTINGS******\n" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
             sestatus >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+            printf "\n---------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt            
         else
-            printf "\t\t SELinux is not installed....\n" >> "${path}"/scxdatacollector.log
+            #printf "\t\t SELinux is not installed....\n" >> "${path}"/scxdatacollector.log
+            printf "SELinux SETTINGS : \n "SELinux is not installed"\n\n" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+            printf "\n*****SELinux SETTINGS******\n" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+            printf "SELinux is not installed" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+            printf "\n---------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         fi           
     fi    
+}
+
+collect_readonly_variable(){
+    kernel=$(uname)
+    if [ "$kernel" == "Linux" ]; then
+        printf "\tCollecting Readonly variable in /etc/profile.d......\n"
+        printf "\n\n***************READONLY VARIABLE (in /etc/profile.d)************************\n" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        grep -R readonly /etc/profile.d >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt        
+        printf "\n==============================================================================="  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    fi
+}
+
+collect_fips_details(){
+    kernel=$(uname)
+    if [ "$kernel" == "Linux" ]; then
+        printf "\tCollecting FIPS details......\n"
+        printf "\n\n***************FIPS details************************" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n---------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n\n***************FIPS settings from /proc/sys/crypto/fips_enabled************************\n" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        cat /proc/sys/crypto/fips_enabled >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+         printf "\n---------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n\n***************FIPS settings from sysctl crypto.fips_enabled ************************\n" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        sysctl crypto.fips_enabled >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt       
+        printf "\n==============================================================================="  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+    fi
 }
 
 collect_env_variable(){
@@ -473,33 +545,17 @@ collect_system_logs(){
     
 }
 
-collect_fips_details(){
-    kernel=$(uname)
-    if [ "$kernel" == "Linux" ]; then
-        printf "\tCollecting FIPS details......\n"
-        printf "\n\n***************FIPS details************************\n" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        cat /proc/sys/crypto/fips_enabled >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        sysctl crypto.fips_enabled >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt        
-    fi
-}
-
 collect_fips_leak(){
     kernel=$(uname)
     if [ "$kernel" == "Linux" ]; then
         printf "\n\nChecking if FIPS enabled RHEL machine has a file descriptor leak of omiserver......\n" >> "${path}"/scxdatacollector.log
-        printf "\n\nChecking if FIPS enabled RHEL machine has a file descriptor leak of omiserver......\n" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n\n********FIPS LEAK******" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\nDoes FIPS enabled RHEL machine has a file descriptor leak of omiserver \n\n" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         sudo lsof -p $(ps -ef | grep -i omiserver | grep -v grep | awk '{print $2}') >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt        
+        printf "\n========================================================================"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
     fi    
 }
 
-collect_readonly_variable(){
-    kernel=$(uname)
-    if [ "$kernel" == "Linux" ]; then
-        printf "\tCollecting Readonly variable in /etc/profile.d......\n"
-        printf "\n\n***************Readonly Variable in /etc/profile.d************************\n" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        grep -R readonly /etc/profile.d >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-    fi
-}
 
 collect_other_config_files(){
     printf "\tCollecting other config files.....\n"
@@ -731,8 +787,8 @@ collect_scx_details(){
 }
 
 collect_scx_config_files(){
-    printf "\tCopying config files.....\n"
-    printf "\tCopying config files.....\n" >> "${path}"/scxdatacollector.log
+    printf "\tCollecting omi config files.....\n"
+    printf "\tCollecting omi config files.....\n" >> "${path}"/scxdatacollector.log
     cp -f /etc/opt/omi/conf/omiserver.conf "${path}"/SCOMLinuxDataCollectorData/configfiles/omiserverconf_copy.txt
 }
 
@@ -746,8 +802,8 @@ collect_omi_scx_logs(){
     printf "\n*****SCX LOG SETTINGS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
     printf "$scxlogsetting \n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
 
-    printf "\tCopying OMI and SCX logs. Might take sometime. Hang On....\n"
-    printf "\tCopying OMI and SCX logs. Might take sometime. Hang On....\n" >> "${path}"/scxdatacollector.log
+    printf "\tCollecting OMI and SCX logs. Might take sometime. Hang On....\n"
+    printf "\tCollecting OMI and SCX logs. Might take sometime. Hang On....\n" >> "${path}"/scxdatacollector.log
     count1=$(ls -1 /var/opt/omi/log/*.log  2>/dev/null | wc -l)
     if [ "${count1}" -ne 0 ]; then
       printf "\t\tFound .log files in path /var/opt/omi/log. Copying the logs.. \n" >> "${path}"/scxdatacollector.log
@@ -863,10 +919,72 @@ collect_scx_provider_status(){
 }
 
 check_omi_core_files(){
-   printf "\tCheck for core files in SCX directory /var/opt/omi/run/.....\n"
-   printf "\tCheck for core files in SCX directory /var/opt/omi/run/......\n" >> "${path}"/scxdatacollector.log   
-    
+    printf "\tCollecting core file settings on the machine.....\n"
+    printf "\tCollecting core file settings on the machine......\n" >> "${path}"/scxdatacollector.log
     kernel=$(uname)
+    if [ "$kernel" == "Linux" ]; then
+       #Following Red Hat documentation
+       #https://access.redhat.com/solutions/4896
+       #https://www.akadia.com/services/ora_enable_core.html
+
+        #dumping ulimit for the current user
+        printf "\n*****Core File Settings******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        printf "\tUlimit settings for below user......\n" >> "${path}"/scxdatacollector.log
+        printf "\n*****Ulimit settings for below user******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        whoami >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        ulimit -c >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+
+        if [ "$(cat /etc/profile | grep -i ulimit)" ]; then
+            printf "\tFound ulimit settings in /etc/profile file......\n" >> "${path}"/scxdatacollector.log            
+            printf "\n\n*****From /etc/profile file******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+            cat /etc/profile | grep -i ulimit >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        fi
+        if [ "$(cat /etc/security/limits.conf | grep -i soft | grep -v -E "^#")" ]; then
+            printf "\tFound ulimit settings in /etc/security/limits.conf file......\n" >> "${path}"/scxdatacollector.log            
+            printf "\n\n*****From /etc/security/limits.conf file******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+            cat /etc/security/limits.conf | grep -i soft | grep -v -E "^#" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        fi
+        if [ "$(cat /etc/init.d/functions | grep -i ulimit)" ]; then
+            printf "\tFound ulimit settings in /etc/init.d/functions file......\n" >> "${path}"/scxdatacollector.log            
+            printf "\n\n*****From /etc/init.d/functions file******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+            cat /etc/init.d/functions | grep -i ulimit >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        fi
+        if [ "$(cat /etc/systemd/system.conf | grep -i core | grep -v -E "^#")" ]; then
+            printf "\tFound core file settings in /etc/systemd/system.conf file......\n" >> "${path}"/scxdatacollector.log            
+            printf "\n\n*****From /etc/systemd/system.conf file******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+            cat /etc/systemd/system.conf | grep -i core | grep -v -E "^#" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        fi
+
+        #collect the core file settings for omi processes
+        if [ "$( ps -ef | grep -i omi | grep -v grep | wc -l)" != 0 ]; then
+            printf "\tOmi processes are found......\n" >> "${path}"/scxdatacollector.log
+            for fn in `ps -ef | grep -E "omiserver|omiengine" | grep -v grep | awk '{print $8}' | cut -f 5 -d "/"`; do                
+                if [ "$( printf $fn)" == 'omiserver' ]; then
+                    printf "\tCollecting Core file settings for process $fn......\n"
+                    printf "\tCollecting Core file settings for process $fn......\n" >> "${path}"/scxdatacollector.log
+                    printf "\n\n*****Core file settings for process $fn******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+                    pid=$(ps -ef | grep $fn | grep -v grep | awk '{print $2}')
+                    cat /proc/$pid/limits | grep core >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt                
+                elif [ "$( printf $fn)" == 'omiengine' ]; then
+                    printf "\tCollecting Core file settings for process $fn......\n"
+                    printf "\tCollecting Core file settings for process $fn......\n" >> "${path}"/scxdatacollector.log
+                    printf "\n\n*****Collecting Core file settings for process $fn******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+                    pid=$(ps -ef | grep $fn | grep -v grep | awk '{print $2}')
+                    cat /proc/$pid/limits | grep core >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt           
+                fi
+            done
+            for fn in `ps -ef | grep -E "omiagent" | grep -v grep | awk '{print $2}'`; do 
+                    printf "\tCollecting Core file settings for process omiagent with PID $fn......\n" >> "${path}"/scxdatacollector.log
+                    printf "\n\n*****Collecting Core file settings for process omiagent with PID $fn******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+                    #pid=$(ps -ef | grep $fn | grep -v grep | awk '{print $2}')
+                    cat /proc/$fn/limits | grep core >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt            
+            done                   
+        fi 
+    fi
+
+    printf "\tCollecting core files in SCX directory /var/opt/omi/run/.....\n"
+    printf "\tCCollecting core files in SCX directory /var/opt/omi/run/......\n" >> "${path}"/scxdatacollector.log     
+    
     if [ "$kernel" == "Linux" ]; then
         if [ "$(cat /etc/*release | grep -E "^NAME" | grep -i "Red Hat" | wc -l)" -eq 1 ]; then
             printf "\t\tRed Hat Detected.... " >> "${path}"/scxdatacollector.log
@@ -904,8 +1022,8 @@ check_omi_core_files(){
 }
 
 check_scx_omi_log_rotation(){
-    printf "\tChecking the log rotation configuration for omi and scx.....\n"
-    printf "\tChecking the log rotation configuration for omi and scx......\n" >> "${path}"/scxdatacollector.log
+    printf "\tCollecting log rotation configuration for omi and scx.....\n"
+    printf "\tCollecting log rotation configuration for omi and scx.....\n" >> "${path}"/scxdatacollector.log
     if [ -f "/etc/opt/omi/conf/omilogrotate.conf" ]; then
         printf "\tFound omilogrotate.conf in path /etc/opt/omi/conf. Copying the file.. \n" >> "${path}"/scxdatacollector.log
         cp -f /etc/opt/omi/conf/omilogrotate.conf  "${path}"/SCOMLinuxDataCollectorData/configfiles/omilogrotateconf_copy.txt
