@@ -119,7 +119,7 @@ collect_os_details() {
     collect_host_name
     collect_os_version
     collect_system_logs sudo
-    collect_compute    
+    #collect_compute    
     collect_network_details
     collect_crypto_details  
     collect_openssh_details sudo
@@ -198,29 +198,33 @@ collect_os_version(){
 }
 
 collect_compute(){
-    printf "\n\tCollecting Memory and CPU for omi processes.....\n"
+    printf "\tCollecting Memory and CPU for omi processes.....\n"
     printf "\tCollecting Memory and CPU for omi processes.....\n" >> "${path}"/scxdatacollector.log
     kernel=$(uname)
     if [ "$kernel" == "Linux" ]; then
-        printf "\n\n******MEM AND CPU FOR OMISERVER PROCESS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        ps -C omiserver -o %cpu,%mem,cmd >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        printf "\n-----------------------------------------------------------------------------" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt       
-        printf "\n\n******MEM AND CPU FOR OMIENGINE PROCESS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        ps -C omiengine -o %cpu,%mem,cmd >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        printf "\n-----------------------------------------------------------------------------" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt        
-        printf "\n\n******MEM AND CPU FOR OMIAGENT PROCESSES******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        ps -C omiagent -o %cpu,%mem,cmd >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        printf "\n=============================================================================" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n\n******COMPUTER DETAILS OF OMI PROCESSES******\n"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        printf "\n-----------------------------------------------------------------------------" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        printf "\n\n******MEM AND CPU FOR OMISERVER PROCESS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        ps -C omiserver -o %cpu,%mem,cmd >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        printf "\n-----------------------------------------------------------------------------" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt    
+        printf "\n\n******MEM AND CPU FOR OMIENGINE PROCESS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        ps -C omiengine -o %cpu,%mem,cmd >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        printf "\n-----------------------------------------------------------------------------" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt        
+        printf "\n\n******MEM AND CPU FOR OMIAGENT PROCESSES******\n"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        ps -C omiagent -o %cpu,%mem,cmd >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        printf "\n=============================================================================" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
     elif [[ "$kernel" == "SunOS" || "$kernel" == "AIX" ]]; then
-        printf "\n\n******MEM AND CPU FOR OMISERVER PROCESS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        ps -efo pmem,pcpu,comm | grep -i omiserver >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        printf "\n-----------------------------------------------------------------------------" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt 
-        printf "\n\n******MEM AND CPU FOR OMIENGINE PROCESS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        ps -efo pmem,pcpu,comm | grep -i omiengine >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        printf "\n-----------------------------------------------------------------------------" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt 
-        printf "\n\n******MEM AND CPU FOR OMIAGENT PROCESSES******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        ps -efo pmem,pcpu,comm | grep -i omiagent >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt 
-        printf "\n=============================================================================" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt     
+        printf "\n\n******COMPUTER DETAILS OF OMI PROCESSES******\n"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        printf "\n-----------------------------------------------------------------------------" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        printf "\n\n******MEM AND CPU FOR OMISERVER PROCESS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        ps -efo pmem,pcpu,comm | grep -i omiserver >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        printf "\n-----------------------------------------------------------------------------" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt 
+        printf "\n\n******MEM AND CPU FOR OMIENGINE PROCESS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        ps -efo pmem,pcpu,comm | grep -i omiengine >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        printf "\n-----------------------------------------------------------------------------" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt 
+        printf "\n\n******MEM AND CPU FOR OMIAGENT PROCESSES******\n"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        ps -efo pmem,pcpu,comm | grep -i omiagent >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt 
+        printf "\n=============================================================================" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt     
     fi    
 }
 
@@ -278,9 +282,21 @@ collect_openssh_details(){
         
         #copy the sshd configuration file
         #printf "\n******Copying sshd config file******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\Copying sshd config file.....\n" >> "${path}"/scxdatacollector.log
         $1 cp -f /etc/ssh/sshd_config  "${path}"/SCOMLinuxDataCollectorData/configfiles/sshd_config_copy.txt
-        printf "\n==========================================================================="  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt       
+        printf "\n==========================================================================="  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
 
+        #collecting additional sshd overwrite files if enabled in sshd_config file
+        if [[ -e "/etc/ssh/sshd_config" ]]; then
+            if [[ -n "$(sudo cat /etc/ssh/sshd_config | grep -i -E "^include" | grep -i ".conf")" ]]; then
+                printf "\Copying overwrite sshd config file.....\n" >> "${path}"/scxdatacollector.log
+                #copying the file in the sshd_config.d
+                cp $(sudo cat /etc/ssh/sshd_config | grep -i -E "^include" | grep -i ".conf" | cut -d " " -f 2) "${path}"/SCOMLinuxDataCollectorData/configfiles/
+                #also copying the file opensshserver.config mostly included in the overwrite files
+                cp /etc/crypto-policies/back-ends/opensshserver.config "${path}"/SCOMLinuxDataCollectorData/configfiles/
+            fi            
+        fi
+        
         #As RHEL9.1 needs openssh version >= 8.7p1-29, adding additional check
         #https://learn.microsoft.com/en-us/system-center/scom/plan-supported-crossplat-os?view=sc-om-2019
         #if [ $(uname) == "Linux" ]; then
@@ -335,7 +351,7 @@ check_kerberos_enabled(){
 }
 
 collect_network_details(){
-    printf "\tCollecting the network details.....\n"
+    printf "\n\tCollecting the network details.....\n"
     printf "\tCollecting the network details.....\n" >> "${path}"/scxdatacollector.log
     kernel=$(uname)
     if [ "$kernel" == "Linux" ]; then
@@ -359,9 +375,11 @@ check_sudo_permission(){
    if (( $# == 1 )); then
         printf "Checking the sudo permissions for the account ${account_1}....\n"
         printf "Checking the sudo permissions for the account ${account_1}.....\n" >> "${path}"/scxdatacollector.log
+
         printf "\tChecking if ${account_1} is present....\n"
         printf "\tChecking if ${account_1} is present....\n" >> "${path}"/scxdatacollector.log
-        count1=$(cat /etc/passwd | grep ${account_1} | wc -l)
+        #count1=$(cat /etc/passwd | grep ${account_1} | wc -l)
+        count1=$(id ${account_1} | wc -l)
         if [ "${count1}" = 1 ]; then
             printf "\t${account_1} is present...\n"
             printf "\t${account_1} is present.....\n" >> "${path}"/scxdatacollector.log
@@ -378,9 +396,11 @@ check_sudo_permission(){
         printf "Checking the sudo permissions for the account ${account_1} and ${account_2}...\n" >> "${path}"/scxdatacollector.log
         printf "\tChecking if ${account_1} and ${account_2} are present...\n"
         printf "\tChecking if ${account_2} and ${account_2} are present.....\n" >> "${path}"/scxdatacollector.log
-        count1=$(cat /etc/passwd | grep ${account_1} | wc -l)
-        count2=$(cat /etc/passwd | grep ${account_2} | wc -l)
-       
+        #count1=$(cat /etc/passwd | grep ${account_1} | wc -l)
+        #count2=$(cat /etc/passwd | grep ${account_2} | wc -l)
+        count1=$(id ${account_1} | wc -l)
+        count2=$(id ${account_2} | wc -l)
+
         if [ "${count1}" = 1 ] && [ "${count2}" = 1  ]; then
             printf "\t${account_1} and ${account_2} are present...\n"
             printf "\t${account_1} and ${account_2} are present.....\n" >> "${path}"/scxdatacollector.log
@@ -556,7 +576,6 @@ collect_fips_leak(){
     fi    
 }
 
-
 collect_other_config_files(){
     printf "\tCollecting other config files.....\n"
     printf "\tCollecting /etc/resolv.conf and /etc/hosts config files......\n" >> "${path}"/scxdatacollector.log
@@ -621,10 +640,11 @@ check_scx_installed(){
             omsagentpkg=$(rpm -qa omsagent 2>/dev/null)
             
             if [ "$scxpkg" ]; then
+                printf "\n========================================================================\n"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
                 printf "*****PACKAGE DETAILS*****\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt 
                 printf "\t\tSCX package is installed. Collecting package details.....\n"
                 printf "\t\tSCX package is installed. Collecting package details.....\n" >> "${path}"/scxdatacollector.log
-                printf "$scxpkg" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt            
+                printf "$scxpkg" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt          
             fi
             if [ "$omipkg" ]; then                
                 printf "\t\tOMI package is installed. Collecting package details.....\n"
@@ -636,12 +656,14 @@ check_scx_installed(){
                 printf "\t\tOMSAgent package is installed. Collecting package details.....\n" >> "${path}"/scxdatacollector.log
                 printf "\n$omsagentpkg" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt            
             fi     
-            
+            printf "\n========================================================================\n"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+
             #calling function to gather more information about SCX
             collect_scx_details "$2"
         else
 			printf "\tSCX package is not installed. Not collecting any further details.....\n"
             printf "\tSCX package is not installed. Not collecting any further details.....\n" >> "${path}"/scxdatacollector.log
+            printf "\n========================================================================\n"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
         fi
     #we will assume if not rpm than dpkg.
     elif [ "$installer" == "dpkg" ]; then
@@ -656,6 +678,7 @@ check_scx_installed(){
             omsagentpkg=$(dpkg -s omsagent 2>/dev/null)
             
             if [ "$scxpkg" ]; then
+                printf "\n========================================================================\n"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
                 printf "*****PACKAGE DETAILS*****\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt 
                 printf "\t\tSCX package is installed. Collecting package details.....\n"
                 printf "\t\tSCX package is installed. Collecting package details.....\n" >> "${path}"/scxdatacollector.log
@@ -671,6 +694,7 @@ check_scx_installed(){
                 printf "\t\tOMSAgent package is installed. Collecting package details.....\n" >> "${path}"/scxdatacollector.log
                 printf "\n\n$omsagentpkg" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt            
             fi
+            printf "\n========================================================================\n"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
             
             #calling function to gather more information about SCX
             collect_scx_details "$2"
@@ -689,6 +713,7 @@ check_scx_installed(){
             omipkg=$(pkginfo -l MSFTomi 2>/dev/null)            
             
             if [ "$scxpkg" ]; then
+                printf "\n========================================================================"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
                 printf "*****PACKAGE DETAILS*****\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt 
                 printf "\t\tSCX package is installed. Collecting package details.....\n"
                 printf "\t\tSCX package is installed. Collecting package details.....\n" >> "${path}"/scxdatacollector.log
@@ -698,12 +723,14 @@ check_scx_installed(){
                 printf "\t\tOMI package is installed. Collecting package details.....\n"
                 printf "\t\tOMI package is installed. Collecting package details.....\n" >> "${path}"/scxdatacollector.log
                 printf "\n\n$omipkg" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt            
-            fi          
+            fi 
+            printf "\n========================================================================\n"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt        
 
             #calling function to gather more information about SCX
             collect_scx_details "$2"
         else
             printf "\tSCX package is not installed. Not collecting any further details.....\n" >> "${path}"/scxdatacollector.log
+            printf "\n========================================================================\n"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
         fi
     elif [ "$installer" == "lslpp" ]; then
         scx=$(lslpp -l scx.rte 2>/dev/null)
@@ -716,6 +743,7 @@ check_scx_installed(){
             omipkg=$(lslpp -l omi.rte 2>/dev/null)            
             
             if [ "$scxpkg" ]; then
+                printf "========================================================================\n"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
                 printf "*****PACKAGE DETAILS*****\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt 
                 printf "\t\tSCX package is installed. Collecting package details.....\n"
                 printf "\t\tSCX package is installed. Collecting package details.....\n" >> "${path}"/scxdatacollector.log
@@ -726,11 +754,13 @@ check_scx_installed(){
                 printf "\t\tOMI package is installed. Collecting package details.....\n" >> "${path}"/scxdatacollector.log
                 printf "\n\n$omipkg" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt            
             fi
+            printf "\n========================================================================\n"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
 
             #calling function to gather more information about SCX
             collect_scx_details "$2"
         else
             printf "\tSCX package is not installed. Not collecting any further details.....\n" >> "${path}"/scxdatacollector.log
+            printf "\n========================================================================\n"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
         fi
     fi
 }
@@ -754,16 +784,23 @@ collect_scx_details(){
     
     omiprocesses=$(ps -ef | grep [o]mi | grep -v grep)
     
+    printf "\n*****SCX DETAILS*****"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    printf "\n------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
     printf "\n\n*****SCX VERSION******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
     printf "${scxversion}\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
-    printf "\n*****SCX STATUS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    printf "\n------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    printf "\n\n*****SCX STATUS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
     printf "${scxstatus}\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
-    printf "\n*****SCX PORT STATUS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    printf "\n------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    printf "\n\n*****SCX PORT STATUS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
     printf "${netstatoutput}\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
-    printf "\n*****OMI PROCESSES******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    printf "\n------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    printf "\n\n*****OMI PROCESSES******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
     printf "${omiprocesses}\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
-    printf "\n*****OMID STATUS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    printf "\n------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    printf "\n\n*****OMID STATUS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
     printf "${omidstatus}\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    printf "\n========================================================================"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
 
     #unable to figure out the redirection for now
     #if the omiserver is stopped then we need to check the status by running the utility
@@ -779,6 +816,7 @@ collect_scx_details(){
     collect_scx_directories_structure "sudo"
     collect_omi_pam
     collect_scx_provider_status
+    collect_compute
     check_omi_core_files
     check_scx_omi_log_rotation
     test_tls_with_omi
@@ -796,11 +834,16 @@ collect_omi_scx_logs(){
     printf "\tCollecting details of OMI and SCX logs.....\n"
     printf "\tCollecting details of OMI and SCX logs.....\n" >> "${path}"/scxdatacollector.log
     omilogsetting=$(cat /etc/opt/omi/conf/omiserver.conf | grep -i loglevel)
-    printf "\n*****OMI LOG SETTINGS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+
+    printf "\n\n*****LOG SETTINGS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    printf "\n------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    printf "\n\n*****OMI LOG SETTINGS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
     printf "$omilogsetting \n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
     scxlogsetting=$(scxadmin -log-list)
-    printf "\n*****SCX LOG SETTINGS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    printf "\n------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    printf "\n\n*****SCX LOG SETTINGS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
     printf "$scxlogsetting \n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    printf "\n========================================================================"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
 
     printf "\tCollecting OMI and SCX logs. Might take sometime. Hang On....\n"
     printf "\tCollecting OMI and SCX logs. Might take sometime. Hang On....\n" >> "${path}"/scxdatacollector.log
@@ -928,32 +971,52 @@ check_omi_core_files(){
        #https://www.akadia.com/services/ora_enable_core.html
 
         #dumping ulimit for the current user
-        printf "\n*****Core File Settings******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        printf "\n\n*****CORE FILE SETTINGS******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        printf "\n------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        if [ "$(cat /etc/*release | grep VERSION_ID | cut -d "=" -f 2 | sed  's/"//' | sed  's/"//' | cut -d "." -f 1)" -gt 7 ]; then
+            printf "\tFetch the coredump history......\n" >> "${path}"/scxdatacollector.log
+            printf "\n------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+            printf "\n\n*****CORE DUMP HISTORY (RHEL8+)******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+            coredumpctl list &>> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt           
+        fi
+
+        printf "\n------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
         printf "\tUlimit settings for below user......\n" >> "${path}"/scxdatacollector.log
-        printf "\n*****Ulimit settings for below user******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        printf "\n\n*****Ulimit settings for below user******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
         whoami >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
         ulimit -c >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
-
+        
+        #collecting core file settings from different settings      
         if [ "$(cat /etc/profile | grep -i ulimit)" ]; then
-            printf "\tFound ulimit settings in /etc/profile file......\n" >> "${path}"/scxdatacollector.log            
+            printf "\tFound ulimit settings in /etc/profile file......\n" >> "${path}"/scxdatacollector.log
+            printf "\n------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt            
             printf "\n\n*****From /etc/profile file******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
             cat /etc/profile | grep -i ulimit >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
         fi
-        if [ "$(cat /etc/security/limits.conf | grep -i soft | grep -v -E "^#")" ]; then
-            printf "\tFound ulimit settings in /etc/security/limits.conf file......\n" >> "${path}"/scxdatacollector.log            
-            printf "\n\n*****From /etc/security/limits.conf file******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
-            cat /etc/security/limits.conf | grep -i soft | grep -v -E "^#" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        if [[ -e "/etc/security/limits.conf" ]]; then
+            if [ "$(cat /etc/security/limits.conf | grep -i soft | grep -v -E "^#")" ]; then
+                printf "\tFound ulimit settings in /etc/security/limits.conf file......\n" >> "${path}"/scxdatacollector.log            
+                printf "\n------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+                printf "\n\n*****From /etc/security/limits.conf file******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+                cat /etc/security/limits.conf | grep -i soft | grep -v -E "^#" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+            fi
         fi
-        if [ "$(cat /etc/init.d/functions | grep -i ulimit)" ]; then
-            printf "\tFound ulimit settings in /etc/init.d/functions file......\n" >> "${path}"/scxdatacollector.log            
-            printf "\n\n*****From /etc/init.d/functions file******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
-            cat /etc/init.d/functions | grep -i ulimit >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        if [[ -e "/etc/init.d/functions" ]]; then
+            if [ "$(cat /etc/init.d/functions | grep -i ulimit)" ]; then
+                printf "\tFound ulimit settings in /etc/init.d/functions file......\n" >> "${path}"/scxdatacollector.log            
+                printf "\n------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+                printf "\n\n*****From /etc/init.d/functions file******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+                cat /etc/init.d/functions | grep -i ulimit >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+            fi
         fi
-        if [ "$(cat /etc/systemd/system.conf | grep -i core | grep -v -E "^#")" ]; then
-            printf "\tFound core file settings in /etc/systemd/system.conf file......\n" >> "${path}"/scxdatacollector.log            
-            printf "\n\n*****From /etc/systemd/system.conf file******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
-            cat /etc/systemd/system.conf | grep -i core | grep -v -E "^#" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
-        fi
+        if [[ -e "/etc/init.d/functions" ]]; then
+            if [ "$(cat /etc/systemd/system.conf | grep -i core | grep -v -E "^#")" ]; then
+                printf "\tFound core file settings in /etc/systemd/system.conf file......\n" >> "${path}"/scxdatacollector.log            
+                printf "\n------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+                printf "\n\n*****From /etc/systemd/system.conf file******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+                cat /etc/systemd/system.conf | grep -i core | grep -v -E "^#" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+            fi
+        fi             
 
         #collect the core file settings for omi processes
         if [ "$( ps -ef | grep -i omi | grep -v grep | wc -l)" != 0 ]; then
@@ -962,12 +1025,14 @@ check_omi_core_files(){
                 if [ "$( printf $fn)" == 'omiserver' ]; then
                     printf "\tCollecting Core file settings for process $fn......\n"
                     printf "\tCollecting Core file settings for process $fn......\n" >> "${path}"/scxdatacollector.log
-                    printf "\n\n*****Core file settings for process $fn******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+                    printf "\n------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+                    printf "\n\n*****Core file settings for process $fn******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt                    
                     pid=$(ps -ef | grep $fn | grep -v grep | awk '{print $2}')
                     cat /proc/$pid/limits | grep core >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt                
                 elif [ "$( printf $fn)" == 'omiengine' ]; then
                     printf "\tCollecting Core file settings for process $fn......\n"
                     printf "\tCollecting Core file settings for process $fn......\n" >> "${path}"/scxdatacollector.log
+                    printf "\n------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
                     printf "\n\n*****Collecting Core file settings for process $fn******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
                     pid=$(ps -ef | grep $fn | grep -v grep | awk '{print $2}')
                     cat /proc/$pid/limits | grep core >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt           
@@ -975,6 +1040,7 @@ check_omi_core_files(){
             done
             for fn in `ps -ef | grep -E "omiagent" | grep -v grep | awk '{print $2}'`; do 
                     printf "\tCollecting Core file settings for process omiagent with PID $fn......\n" >> "${path}"/scxdatacollector.log
+                    printf "\n------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
                     printf "\n\n*****Collecting Core file settings for process omiagent with PID $fn******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
                     #pid=$(ps -ef | grep $fn | grep -v grep | awk '{print $2}')
                     cat /proc/$fn/limits | grep core >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt            
@@ -1047,10 +1113,14 @@ test_tls_with_omi(){
 }
 
 check_omiserver_dependencies(){
-    printf "\tCollecting dependencies of omiserver.........\n"
-    printf "\tCollecting dependencies of omiserver.........\n" >> "${path}"/scxdatacollector.log
-    printf "\n*****LDD******\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
-    ldd /opt/omi/bin/omiserver >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    kernel=$(uname)
+    if [ "$kernel" == "Linux" ]; then
+        printf "\tCollecting dependencies of omiserver.........\n"
+        printf "\tCollecting dependencies of omiserver.........\n" >> "${path}"/scxdatacollector.log
+        printf "\n========================================================================"  >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        printf "\n\n*****LDD******\n\n" >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+        ldd /opt/omi/bin/omiserver >> "${path}"/SCOMLinuxDataCollectorData/SCXDetails.txt
+    fi    
 }
 
 clean_empty_directory() {
@@ -1141,16 +1211,21 @@ sub_main_non_root(){
 }
 
 main(){
-    printf "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
-    #clearing the scxdatacollector.log file to start with
-    #using sudo out-of-box even if the user is root to avoid permission denied on the intial log file creation.   
+    printf "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"    
+    #using sudo out-of-box even if the user is root to avoid permission denied on the intial log file creation.
 
-    if [ -z "${path}"  ]; then
-        path=$(pwd)
-        if [ $(whoami) = "root" ]; then
-            printf "" > "${path}"/scxdatacollector.log 
-            printf "Log Collection Path is NULL. Setting Path to current working directory......\n"
-            printf "Log Collection Path is NULL. Setting Path to current working directory......\n" >> "${path}"/scxdatacollector.log
+    # if the 1st parameter is not empty and is a directory then go to IF. If not go to ELSE
+    if [ -n $1 ] && [ -d "$1" ]; then
+        path=$1  #need to set the path variable to the passed argument as we use the path variable in the script
+        #clearing the scxdatacollector.log file to start with
+        printf "" > "${path}"/scxdatacollector.log
+
+        printf "Log Collection Path is $1......\n"
+        printf "Log Collection Path is $1......\n" >> "${path}"/scxdatacollector.log
+
+        # if the user is root, no need to check for permission to write data to output directory
+        if [ $(whoami) = "root" ]; then        
+            printf "User is 'root'. No need to check file system permission......\n" >> "${path}"/scxdatacollector.log       
         else
             ls -ld $path
             printf "Does the output path has write access for the sudo user $(whoami)?(Y/N)"
@@ -1166,15 +1241,21 @@ main(){
                 fi            
             elif [ "${answer}" = "Y" ]; then  
                 sudo printf "" > "${path}"/scxdatacollector.log 
-                printf "Log Collection Path is NULL. Setting Path to current working directory......\n"
-                printf "Log Collection Path is NULL. Setting Path to current working directory......\n" >> "${path}"/scxdatacollector.log        
+                printf "Log Collection Path is $1......\n"
+                printf "Log Collection Path is $1......\n" >> "${path}"/scxdatacollector.log       
             fi   
-        fi        
-    else
-        if [ $(whoami) = "root" ]; then
-            printf "" > "${path}"/scxdatacollector.log 
-            printf "Log Collection Path is NULL. Setting Path to current working directory......\n"
-            printf "Log Collection Path is NULL. Setting Path to current working directory......\n" >> "${path}"/scxdatacollector.log
+        fi
+    #path parameter is not passed        
+    else    
+        path=$(pwd)
+        #clearing the scxdatacollector.log file to start with
+        printf "" > "${path}"/scxdatacollector.log
+
+        printf "Log Collection Path Parameter is not passed. Setting Path to current working directory : ${path}......\n"
+        printf "Log Collection Path Parameter is not passed. Setting Path to current working directory : ${path}......\n" >> "${path}"/scxdatacollector.log
+
+        if [ $(whoami) = "root" ]; then            
+            printf "User is 'root'. No need to check file system permission......\n" >> "${path}"/scxdatacollector.log
         else
             ls -ld $path
             printf "Does the output path has write access for the sudo user $(whoami)?(Y/N)"
@@ -1190,8 +1271,8 @@ main(){
                 fi            
             elif [ "${answer}" = "Y" ]; then  
                 sudo printf "" > "${path}"/scxdatacollector.log 
-                printf "Log Collection Path is NULL. Setting Path to current working directory......\n"
-                printf "Log Collection Path is NULL. Setting Path to current working directory......\n" >> "${path}"/scxdatacollector.log        
+                 printf "Log Collection Path Parameter is not passed. Setting Path to current working directory : ${path}......\n"
+                printf "Log Collection Path Parameter is not passed. Setting Path to current working directory : ${path}......\n" >> "${path}"/scxdatacollector.log      
             fi   
         fi          
     fi
@@ -1249,8 +1330,7 @@ while getopts "ho:m:n:" option; do
 done
 
 #function calls
-        main "$path" "$maint" "$mon"
-
+main "$path" "$maint" "$mon"
 
 # must use double quotes
 yellow_prefix="\033[33m"
