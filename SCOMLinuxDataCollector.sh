@@ -265,21 +265,23 @@ collect_openssh_details(){
         printf "$(rpm -qa | grep -i openssh)" >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         printf "\n\n---------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt 
         
+        printf "\n\n******HOST KEY ALGORITHIMS DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        #the stderr is redirected to the file and then the stdout is redirected after grepping
+        $1 sshd -T 2>>"${path}"/SCOMLinuxDataCollectorData/OSDetails.txt  | grep -i keyalgorithms >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        printf "\n---------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt        
+
         printf "\n\n******KEY EXCHANGE ALGORITHIM (KEX) DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt        
-        $1 sshd -T | egrep ^kexalgorithms 2>&1  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        $1 sshd -T 2> /dev/null | grep -i ^kexalgorithms >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         printf "\n---------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt        
         
         printf "\n\n******CIPHERS DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        $1 sshd -T | grep ciphers 2>&1  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
+        $1 sshd -T 2> /dev/null | grep -i ciphers >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt        
         printf "\n---------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt        
         
         printf "\n\n******MACS DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        $1 sshd -T | grep macs 2>&1  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        printf "\n---------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt        
-    
-        printf "\n\n******HOST KEY ALGORITHIMS DETAILS******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
-        $1 sshd -T | grep keyalgorithms 2>&1 >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt        
-        
+        $1 sshd -T 2> /dev/null | grep -i macs >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt        
+        #printf "\n---------------------------------------------------------------------------"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt 
+
         #copy the sshd configuration file
         #printf "\n******Copying sshd config file******\n"  >> "${path}"/SCOMLinuxDataCollectorData/OSDetails.txt
         printf "\Copying sshd config file.....\n" >> "${path}"/scxdatacollector.log
@@ -361,7 +363,7 @@ check_kerberos_enabled(){
 }
 
 collect_kerberos_details(){
-    create_dir "${path}/SCOMLinuxDataCollectorData/Kerberos"
+    create_dir "${path}/SCOMLinuxDataCollectorData/kerberos"
     printf "\t  Collecting Kerberos details....\n"
     printf "\t  Collecting Kerberos details...\n" >> "${path}"/scxdatacollector.log
 
@@ -379,11 +381,11 @@ collect_kerberos_details(){
     printf "\t  Check for kutil presence...\n" >> "${path}"/scxdatacollector.log
     if [ "$(which ktutil)" ]; then
         printf "\n*****Ktutil presence******" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt        
-        printf "\n ktutil is present" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\nktutil is present" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
         printf "\n=============================================================================" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
     else
         printf "\n*****Ktutil presence******" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
-        printf "\n ktutil is not present" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\nktutil is not present" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
         printf "\n=============================================================================" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
     fi
 
@@ -391,12 +393,12 @@ collect_kerberos_details(){
     printf "\t  Check if crond is running...\n" >> "${path}"/scxdatacollector.log
     isCrondRunning=$(sudo systemctl status crond | grep -i active | grep -i running | wc -l)
     if [ "${isCrondRunning}" = 1  ]; then        
-        printf "\n *****Crond status******" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
-        printf "\n Crond is running" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\n*****Crond status******" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\nCrond is running" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
         printf "\n=============================================================================" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
     else
-        printf "\n *****Crond status*******" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
-        printf "\n Crond is not running" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\n*****Crond status*******" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\nCrond is not running" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
         printf "\n=============================================================================" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
     fi
 
@@ -404,14 +406,14 @@ collect_kerberos_details(){
     printf "\t  Check if omi.keytab is present in crontab...\n" >> "${path}"/scxdatacollector.log
     isomikeytab=$(sudo crontab -u root -l | grep -i omi.keytab | wc -l)
     if [ "${isomikeytab}" = 1  ]; then        
-        printf "\n *****omi.keytab presence in crontab******" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
-        printf "\n omi.keytab is present in crontab" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\n*****omi.keytab presence in crontab******" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\nomi.keytab is present in crontab" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
         printf "\n-----------------------------------------------------------------------------\n" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
         sudo crontab -u root -l | grep -i omi.keytab >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
         printf "\n=============================================================================" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
     else
-        printf "\n *****omi.keytab presence in crontab*******" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
-        printf "\n omi.keytab is not present in crontab" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\n*****omi.keytab presence in crontab*******" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\nomi.keytab is not present in crontab" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
         printf "\n=============================================================================" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
     fi
 
