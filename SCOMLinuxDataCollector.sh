@@ -332,22 +332,135 @@ collect_disk_space(){
 }
 
 check_kerberos_enabled(){
-    #This is not a full proof method as there are 3rd party tools who uses different ways to enable Kerb auth. Need more testing.
-    printf "\tChecking if Kerberos Authentication is enabled. This might not be 100%% accurate....\n"
-    printf "\tChecking if Kerberos Authentication is enabled. This might not be 100%% accurate....\n" >> "${path}"/scxdatacollector.log
-    if [ -f "/etc/krb5.conf" ]; then
-        isKerb=$(cat /etc/krb5.conf | grep -E "^default_realm" | wc -l)
-        if [ "${isKerb}" = 1 ]; then
-            printf "\t  Kerberos Authentication is enabled. This might not be 100%% accurate....\n"
-            printf "\t  Kerberos Authentication is enabled. This might not be 100%% accurate....\n" >> "${path}"/scxdatacollector.log
+    #This is an experimental check for Kerberos as there are 3rd party tools which uses different methods to enable Kerb auth. Need more testing.
+    printf "\tChecking if Kerberos Authentication is enabled. This is EXPERIMENTAL....\n"
+    printf "\tChecking if Kerberos Authentication is enabled. This is EXPERIMENTAL....\n" >> "${path}"/scxdatacollector.log
+
+    #only testing for Linux Kernel for now
+    kernel=$(uname)
+    if [ "$kernel" == "Linux" ]; then
+        #checking the file /etc/krb5.conf presence and inside the file checking for default realm
+        if [ -f "/etc/krb5.conf" ]; then
+            isKerb=$(cat /etc/krb5.conf | grep -E "^default_realm" | wc -l)
+            if [ "${isKerb}" = 1 ]; then
+                printf "\t  Kerberos Authentication is enabled....\n"
+                printf "\t  Kerberos Authentication is enabled....\n" >> "${path}"/scxdatacollector.log
+                collect_kerberos_details
+            else
+                printf "\t  Kerberos Authentication is not enabled....\n"
+                printf "\t  Kerberos Authentication is not enabled....\n" >> "${path}"/scxdatacollector.log
+            fi
         else
-            printf "\t  Kerberos Authentication is not enabled. This might not be 100%% accurate....\n"
-            printf "\t  Kerberos Authentication is not enabled. This might not be 100%% accurate....\n" >> "${path}"/scxdatacollector.log
+            printf "\t  Kerberos Authentication is not enabled....\n"
+            printf "\t  Kerberos Authentication is not enabled....\n" >> "${path}"/scxdatacollector.log
         fi
     else
-        printf "\t  Kerberos Authentication is not enabled. This might not be 100%% accurate....\n"
-        printf "\t  Kerberos Authentication is not enabled. This might not be 100%% accurate....\n" >> "${path}"/scxdatacollector.log
+        printf "\t Kernel is non-Linux. No further Kerberos check....\n" 
+        printf "\t Kernel is non-Linux. No further Kerberos check....\n" >> "${path}"/scxdatacollector.log
+    fi    
+}
+
+collect_kerberos_details(){
+    create_dir "${path}/SCOMLinuxDataCollectorData/Kerberos"
+    printf "\t  Collecting Kerberos details....\n"
+    printf "\t  Collecting Kerberos details...\n" >> "${path}"/scxdatacollector.log
+
+    #copy /etc/krb5.conf
+    cp /etc/krb5.conf ${path}/SCOMLinuxDataCollectorData/Kerberos/krb5.conf_copy
+
+    #get kerberos related packages
+    printf "\t  Check Kerberos Packages...\n" >> "${path}"/scxdatacollector.log
+    printf "*****Kerberos Packages******" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+    printf "\n-----------------------------------------------------------------------------\n" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+    rpm -qa sssd sssd-client krb5-workstation samba samba-common-tools openldap-clients open-ssl authconfig realmd oddjob oddjob-mkhomedir adcli kinit >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+    printf "\n=============================================================================" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+
+    #check for ktutil
+    printf "\t  Check for kutil presence...\n" >> "${path}"/scxdatacollector.log
+    if [ "$(which ktutil)" ]; then
+        printf "\n*****Ktutil presence******" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt        
+        printf "\n ktutil is present" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\n=============================================================================" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+    else
+        printf "\n*****Ktutil presence******" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\n ktutil is not present" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\n=============================================================================" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
     fi
+
+    # if crond is running
+    printf "\t  Check if crond is running...\n" >> "${path}"/scxdatacollector.log
+    isCrondRunning=$(sudo systemctl status crond | grep -i active | grep -i running | wc -l)
+    if [ "${isCrondRunning}" = 1  ]; then        
+        printf "\n *****Crond status******" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\n Crond is running" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\n=============================================================================" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+    else
+        printf "\n *****Crond status*******" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\n Crond is not running" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\n=============================================================================" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+    fi
+
+    #check the crontab existence for omi.keytab
+    printf "\t  Check if omi.keytab is present in crontab...\n" >> "${path}"/scxdatacollector.log
+    isomikeytab=$(sudo crontab -u root -l | grep -i omi.keytab | wc -l)
+    if [ "${isomikeytab}" = 1  ]; then        
+        printf "\n *****omi.keytab presence in crontab******" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\n omi.keytab is present in crontab" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\n-----------------------------------------------------------------------------\n" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        sudo crontab -u root -l | grep -i omi.keytab >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\n=============================================================================" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+    else
+        printf "\n *****omi.keytab presence in crontab*******" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\n omi.keytab is not present in crontab" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\n=============================================================================" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+    fi
+
+    #presence and permission of /etc/krb5.conf.d
+    printf "\t  Presence and Permission of /etc/krb5.conf.d*...\n" >> "${path}"/scxdatacollector.log
+    printf "\n*****Presence and Permission of /etc/krb5.conf.d******" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+    printf "\n-----------------------------------------------------------------------------\n" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+    ls -ld /etc/krb5.conf.d >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+    printf "\n=============================================================================" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+
+    #check for presence and sssd and more sssd configuration
+    printf "\t  Check for sssd presence...\n" >> "${path}"/scxdatacollector.log
+    if [ "$(which sssd)" ]; then
+        printf "\n*****Sssd presence******" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt        
+        printf "\n Sssd is present" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        if [ "$(sudo systemctl status sssd | grep -i running | wc -l) = 1" ]; then
+            printf "\n Sssd is running" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+
+            #copy /etc/sssd/sssd.conf
+            sudo cp /etc/sssd/sssd.conf ${path}/SCOMLinuxDataCollectorData/Kerberos/sssd.conf_copy
+        else
+            printf "\n Sssd is not running" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        fi
+        printf "\n=============================================================================" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+    else
+        printf "\n*****Sssd presence******" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\n Sssd is not present" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\n=============================================================================" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+    fi
+
+    #dump the SPN from krb5.keytab and omi.keytab
+    printf "\t  Dump the SPN from krb5.keytab and omi.keytab...\n" >> "${path}"/scxdatacollector.log
+    if [ "$(which klist)" ]; then        
+        printf "\t  Klist found. Dumping the SPN..\n" >> "${path}"/scxdatacollector.log
+        printf "\n*****SPN Details******" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\n-----------------------------------------------------------------------------\n" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\n SPN in /etc/krb5.keytab" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\n-----------------------------------------------------------------------------\n" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        sudo  klist -kt /etc/krb5.keytab >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\n-----------------------------------------------------------------------------\n" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\n SPN in /etc/opt/omi/creds/omi.keytab" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        printf "\n-----------------------------------------------------------------------------\n" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+        sudo  klist -kt /etc/opt/omi/creds/omi.keytab >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+    else
+        printf "\t  klist not found. Not dumping the SPN..\n" >> "${path}"/scxdatacollector.log
+        printf "\n*****SPN Details******" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt        
+        printf "\nSPN cannot be dumped" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt
+    fi
+    printf "\n=============================================================================" >> ${path}/SCOMLinuxDataCollectorData/Kerberos/kerberosdetails.txt    
 }
 
 collect_network_details(){
