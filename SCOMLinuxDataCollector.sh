@@ -134,12 +134,12 @@ check_diskusage_estimate(){
         outputpathavailablespace=$(df --block-size=M $path | awk '{print $4}' | grep -v Available | sed "s/M//")
         #printf "\nOutput Path Available Space : $outputpathavailablespace"
         if [ "$estimateddiskusage" -gt "$outputpathavailablespace" ]; then
-            printf "\n\tNot enough space available in output directory $path. The Available disk space is $outputpathavailablespace MB. Exiting... \n"
-            printf "\n\tNot enough space available in output directory $path. The Available disk space is $outputpathavailablespace MB. Exiting... \n" >> "${path}"/scxdatacollector.log
+            printf "\n\tNot enough space available in output directory $path. The available disk space is $outputpathavailablespace MB. Exiting... \n"
+            printf "\n\tNot enough space available in output directory $path. The available disk space is $outputpathavailablespace MB. Exiting... \n" >> "${path}"/scxdatacollector.log
             exit
         else
-            printf "\n\tEnough space available in output directory $path. The Available disk space is $outputpathavailablespace MB \n"
-            printf "\n\tEnough space available in output directory $path. The Available disk space is $outputpathavailablespace MB \n" >> "${path}"/scxdatacollector.log
+            printf "\n\tEnough space available in output directory $path. The available disk space is $outputpathavailablespace MB \n"
+            printf "\n\tEnough space available in output directory $path. The available disk space is $outputpathavailablespace MB \n" >> "${path}"/scxdatacollector.log
         fi 
     elif [ "$kernel" == "SunOS" ]; then
         for n in $(du -m /var/opt/microsoft/scx/log | egrep "log$" 2>/dev/null | awk '{print $1}';du -m  /var/opt/omi/log/ 2>/dev/null | awk '{print $1}';du -m  /var/log/authlog 2>/dev/null | awk '{print $1}';du -m  /var/log/syslog 2>/dev/null | awk '{print $1}')
@@ -177,6 +177,7 @@ check_diskusage_estimate(){
 
         #get the disk space available in the output directory
         #we get the size in Kb because -m switch is not available in Sun OS and AIX and then divide Kb by 1024 to convert to Mb.
+        #for AIX the column name is different i.e. Free
         outputpathavailablespace=$(expr $(df -k $path | awk '{print $3}' | grep -v Free) / 1024)
         #printf "\nOutput Path Available Space : $outputpathavailablespace"
         if [ "$estimateddiskusage" -gt "$outputpathavailablespace" ]; then
