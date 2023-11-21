@@ -114,6 +114,8 @@ create_dir(){
 }
 
 check_diskusage_estimate(){
+    #Since we are collecting only 1 core file which size is typically very insignificant so we are ignoring it. But if required we can use the below command.
+    #expr $(du -h /var/lib/systemd/coredump/core.omi* 2>/dev/null | tail -n 1 | awk '{print $1}' | sed "s/K//") / 1024
     printf "Checking if the output directory has sufficient disk space.....\n"
     printf "\nChecking if the output directory has sufficient disk space.....\n" >> "${path}"/scxdatacollector.log
     kernel=$(uname)
