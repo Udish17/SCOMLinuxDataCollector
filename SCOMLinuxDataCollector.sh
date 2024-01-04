@@ -1268,7 +1268,7 @@ check_omi_core_files(){
     fi
 
     printf "\t\tCollecting core files in SCX directory /var/opt/omi/run/.....\n"
-    printf "\t\tCCollecting core files in SCX directory /var/opt/omi/run/......\n" >> "${path}"/scxdatacollector.log     
+    printf "\t\tCollecting core files in SCX directory /var/opt/omi/run/......\n" >> "${path}"/scxdatacollector.log     
     
     if [ "$kernel" == "Linux" ]; then
         if [ "$(cat /etc/*release | grep -E "^NAME" | grep -i "Red Hat" | wc -l)" -eq 1 ]; then
