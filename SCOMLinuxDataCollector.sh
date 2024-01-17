@@ -450,7 +450,7 @@ check_kerberos_enabled(){
 }
 
 collect_kerberos_details(){
-    create_dir "${path}/SCOMLinuxDataCollectorData/kerberos"
+    create_dir "${path}/SCOMLinuxDataCollectorData/Kerberos"
     printf "\t  Collecting Kerberos details....\n"
     printf "\t  Collecting Kerberos details...\n" >> "${path}"/scxdatacollector.log
 
