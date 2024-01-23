@@ -1,5 +1,7 @@
 #! /bin/bash
 : <<'ScriptInformationBlock'
+    Version:
+       v1.0.3-alpha
     About:
        This script is written for data collection from Linux machines which can help in troubleshooting SCOM UNIX/LINUX Agent (SCXAgent)
     Original Author :
@@ -1574,7 +1576,7 @@ printf "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 : <<'LicenseInformation'
 MIT License
 
-Copyright (c) 2022 Udish Mudiar
+Copyright (c) 2024 Udish Mudiar
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
