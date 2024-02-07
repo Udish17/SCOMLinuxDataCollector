@@ -430,8 +430,8 @@ check_kerberos_enabled(){
     if [ "$kernel" == "Linux" ]; then
         #checking the file /etc/krb5.conf presence and inside the file checking for default realm
         if [ -f "/etc/krb5.conf" ]; then
-            isKerb=$(cat /etc/krb5.conf | grep -E "^default_realm" | wc -l)
-            if [ "${isKerb}" = 1 ]; then
+            isKerb=$(cat /etc/krb5.conf | grep -E "*default_realm" | wc -l)
+            if [ "${isKerb}" -ge 1 ]; then
                 printf "\t  Kerberos Authentication is enabled....\n"
                 printf "\t  Kerberos Authentication is enabled....\n" >> "${path}"/scxdatacollector.log
                 collect_kerberos_details
